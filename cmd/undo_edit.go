@@ -18,7 +18,7 @@ This command restores a file to its previous state before the last edit operatio
 the original content.
 
 Usage:
-	undo_edit path [--show-diff] [--show-result]
+	undo_edit path [--show-diff] [--show-result] [--count N]
 
 Parameters:
 	path: The path to the file to restore from backup.
@@ -26,11 +26,13 @@ Parameters:
 Flags:
 	--show-diff: Show the changes made during the undo operation.
 	--show-result: Show the new content after the undo operation.
+	--count: Number of edits to undo (default: 1).
 
 Example:
 	eddie undo_edit /path/to/file.txt
 	eddie undo_edit config.json --show-diff
-	eddie undo_edit script.sh --show-result`,
+	eddie undo_edit script.sh --show-result
+	eddie undo_edit script.sh --count 3`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			fmt.Println("Error: path is required")
@@ -39,13 +41,15 @@ Example:
 		path := args[0]
 		showChanges, _ := cmd.Flags().GetBool("show-diff")
 		showResult, _ := cmd.Flags().GetBool("show-result")
+		count, _ := cmd.Flags().GetInt("count")
 
-		checkErr(undo_edit.UndoEdit(path, showChanges, showResult))
+		checkErr(undo_edit.UndoEdit(path, showChanges, showResult, count))
 	},
 }
 
 func init() {
 	undoEditCmd.Flags().Bool("show-diff", false, "Show the changes made during the undo operation")
 	undoEditCmd.Flags().Bool("show-result", false, "Show the new content after the undo operation")
+	undoEditCmd.Flags().Int("count", 1, "Number of edits to undo")
 	rootCmd.AddCommand(undoEditCmd)
 }

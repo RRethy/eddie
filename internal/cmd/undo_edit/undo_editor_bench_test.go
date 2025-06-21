@@ -109,7 +109,7 @@ func BenchmarkUndoEditor_UndoEdit(b *testing.B) {
 				b.StartTimer()
 
 				// Undo edit
-				err = u.UndoEdit(testFile, false, false)
+				err = u.UndoEdit(testFile, false, false, 1)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -172,7 +172,7 @@ func BenchmarkUndoEditor_MultipleEdits(b *testing.B) {
 				b.StartTimer()
 
 				// Undo one edit
-				err = u.UndoEdit(testFile, false, false)
+				err = u.UndoEdit(testFile, false, false, 1)
 				if err != nil {
 					b.Fatal(err)
 				}

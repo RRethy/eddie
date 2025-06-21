@@ -176,7 +176,7 @@ Undo the last edit operation on a file by restoring from backup.
 
 **Usage:**
 ```bash
-eddie undo_edit path [--show-diff] [--show-result]
+eddie undo_edit path [--show-diff] [--show-result] [--count N]
 ```
 
 **Parameters:**
@@ -185,15 +185,17 @@ eddie undo_edit path [--show-diff] [--show-result]
 **Flags:**
 - `--show-diff`: Show the changes made during the undo operation
 - `--show-result`: Show the new content after the undo operation
+- `--count`: Number of edits to undo (default: 1)
 
 **Examples:**
 ```bash
 eddie undo_edit /path/to/file.txt
 eddie undo_edit config.json --show-diff
 eddie undo_edit script.sh --show-result
+eddie undo_edit script.sh --count 3
 ```
 
-**Note:** This command automatically records edit operations when using `str_replace` or `insert` commands. Edit records are stored in `$XDG_CACHE_HOME/eddie/edits` (or `~/.cache/eddie/edits` if `XDG_CACHE_HOME` is not set). It reverses the most recent edit and validates that the file hasn't been modified by other means since the last tracked edit.
+**Note:** This command automatically records edit operations when using `str_replace` or `insert` commands. Edit records are stored in `$XDG_CACHE_HOME/eddie/edits` (or `~/.cache/eddie/edits` if `XDG_CACHE_HOME` is not set). It reverses the most recent edit(s) and validates that the file hasn't been modified by other means since the last tracked edit. When using `--count`, it undoes multiple edits in reverse chronological order.
 
 ### ls
 List directory contents.

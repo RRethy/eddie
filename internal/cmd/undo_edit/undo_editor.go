@@ -37,7 +37,10 @@ type EditHistory struct {
 	Edits    []EditRecord `json:"edits"`
 }
 
-func (u *UndoEditor) UndoEdit(path string, showChanges, showResult bool) error {
+func (u *UndoEditor) UndoEdit(path string, showChanges, showResult bool, count int) error {
+	if count <= 0 {
+		return fmt.Errorf("count must be greater than 0")
+	}
 	info, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return fmt.Errorf("file does not exist: %s", path)
@@ -57,12 +60,8 @@ func (u *UndoEditor) UndoEdit(path string, showChanges, showResult bool) error {
 		return fmt.Errorf("no edit records found for %s", path)
 	}
 
-	lastEditIndex := len(editHistory.Edits) - 1
-	editRecord := editHistory.Edits[lastEditIndex]
-
-	if !info.ModTime().Equal(editRecord.FileModTime) {
-		return fmt.Errorf("file has been modified since last tracked edit (expected: %v, actual: %v)",
-			editRecord.FileModTime.Format(time.RFC3339), info.ModTime().Format(time.RFC3339))
+	if count > len(editHistory.Edits) {
+		return fmt.Errorf("cannot undo %d edits, only %d edits available", count, len(editHistory.Edits))
 	}
 
 	var beforeContent string
@@ -74,9 +73,23 @@ func (u *UndoEditor) UndoEdit(path string, showChanges, showResult bool) error {
 		beforeContent = string(content)
 	}
 
-	err = u.applyReverseEdit(path, &editRecord)
-	if err != nil {
-		return fmt.Errorf("apply reverse edit: %w", err)
+	for i := 0; i < count; i++ {
+		lastEditIndex := len(editHistory.Edits) - 1
+		editRecord := editHistory.Edits[lastEditIndex]
+
+		if i == 0 {
+			if !info.ModTime().Equal(editRecord.FileModTime) {
+				return fmt.Errorf("file has been modified since last tracked edit (expected: %v, actual: %v)",
+					editRecord.FileModTime.Format(time.RFC3339), info.ModTime().Format(time.RFC3339))
+			}
+		}
+
+		err = u.applyReverseEdit(path, &editRecord)
+		if err != nil {
+			return fmt.Errorf("apply reverse edit %d: %w", i+1, err)
+		}
+
+		editHistory.Edits = editHistory.Edits[:lastEditIndex]
 	}
 
 	if showChanges || showResult {
@@ -91,8 +104,6 @@ func (u *UndoEditor) UndoEdit(path string, showChanges, showResult bool) error {
 			u.display.ShowResult(path, string(afterContent))
 		}
 	}
-
-	editHistory.Edits = editHistory.Edits[:lastEditIndex]
 
 	if len(editHistory.Edits) > 0 {
 		newInfo, err := os.Stat(path)
@@ -115,7 +126,11 @@ func (u *UndoEditor) UndoEdit(path string, showChanges, showResult bool) error {
 		}
 	}
 
-	fmt.Printf("Undid %s edit in %s\n", editRecord.EditType, path)
+	if count == 1 {
+		fmt.Printf("Undid 1 edit in %s\n", path)
+	} else {
+		fmt.Printf("Undid %d edits in %s\n", count, path)
+	}
 	return nil
 }
 

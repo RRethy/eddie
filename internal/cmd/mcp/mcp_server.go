@@ -306,7 +306,7 @@ func (m *McpServer) handleUndoEdit(ctx context.Context, req mcp.CallToolRequest)
 		showResult = sr
 	}
 
-	err := undo_edit.UndoEdit(path, showChanges, showResult)
+	err := undo_edit.UndoEdit(path, showChanges, showResult, 1)
 	if err != nil {
 		return &mcp.CallToolResult{
 			IsError: true,
