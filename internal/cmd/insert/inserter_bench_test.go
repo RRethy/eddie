@@ -24,7 +24,7 @@ func BenchmarkInserter_Insert(b *testing.B) {
 		b.Run(size.name, func(b *testing.B) {
 			// Create file with specified number of lines
 			content := strings.Repeat("this is a test line\n", size.size)
-			
+
 			i := &Inserter{}
 
 			for n := 0; n < b.N; n++ {
@@ -50,7 +50,7 @@ func BenchmarkInserter_InsertPosition(b *testing.B) {
 
 	// Create medium-sized file
 	content := strings.Repeat("this is a test line\n", 10000)
-	
+
 	positions := []struct {
 		name string
 		line string
@@ -137,7 +137,7 @@ func BenchmarkInserter_insertLine(b *testing.B) {
 
 	for _, size := range sizes {
 		content := strings.Repeat("test line\n", size.size)
-		
+
 		b.Run(size.name+"_beginning", func(b *testing.B) {
 			for n := 0; n < b.N; n++ {
 				_, err := i.insertLine(content, 1, "new line")

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/RRethy/eddie/internal/cmd/undo_edit"
 )
 
 type Replacer struct{}
@@ -34,6 +36,13 @@ func (r *Replacer) StrReplace(path, oldStr, newStr string) error {
 	err = os.WriteFile(path, []byte(modified), info.Mode())
 	if err != nil {
 		return fmt.Errorf("write file %s: %w", path, err)
+	}
+
+	// Record edit for undo after file is written
+	undoEditor := &undo_edit.UndoEditor{}
+	err = undoEditor.RecordEdit(path, "str_replace", oldStr, newStr, -1)
+	if err != nil {
+		return fmt.Errorf("record edit: %w", err)
 	}
 
 	count := strings.Count(original, oldStr)

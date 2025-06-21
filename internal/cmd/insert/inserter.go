@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/RRethy/eddie/internal/cmd/undo_edit"
 )
 
 type Inserter struct{}
@@ -44,6 +46,13 @@ func (i *Inserter) Insert(path, insertLine, newStr string) error {
 		return fmt.Errorf("write file %s: %w", path, err)
 	}
 
+	// Record edit for undo after file is written
+	undoEditor := &undo_edit.UndoEditor{}
+	err = undoEditor.RecordEdit(path, "insert", "", newStr, lineNum)
+	if err != nil {
+		return fmt.Errorf("record edit: %w", err)
+	}
+
 	fmt.Printf("Inserted line at position %d in %s\n", lineNum, path)
 	return nil
 }
@@ -69,7 +78,7 @@ func (i *Inserter) insertLine(content string, lineNum int, newStr string) (strin
 
 	lines := strings.Split(content, "\n")
 	hasTrailingNewline := strings.HasSuffix(content, "\n")
-	
+
 	// Remove empty line at end if file ends with newline
 	if hasTrailingNewline && len(lines) > 0 && lines[len(lines)-1] == "" {
 		lines = lines[:len(lines)-1]
@@ -82,7 +91,7 @@ func (i *Inserter) insertLine(content string, lineNum int, newStr string) (strin
 
 	// Insert the new line
 	var result []string
-	
+
 	if lineNum == 1 {
 		// Insert at beginning
 		result = append([]string{newStr}, lines...)

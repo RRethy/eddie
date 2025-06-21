@@ -25,12 +25,12 @@ func TestMain(m *testing.M) {
 func runEddie(t *testing.T, args ...string) (string, string, error) {
 	t.Helper()
 	cmd := exec.Command(eddieBinary, args...)
-	
+
 	stdout, err := cmd.Output()
 	stderr := ""
 	if exitErr, ok := err.(*exec.ExitError); ok {
 		stderr = string(exitErr.Stderr)
 	}
-	
+
 	return string(stdout), stderr, err
 }

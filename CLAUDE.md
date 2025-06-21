@@ -60,10 +60,12 @@ go mod tidy
 - `cmd/str_replace.go` - String replacement command definition
 - `cmd/create.go` - File creation command definition
 - `cmd/insert.go` - Line insertion command definition
+- `cmd/undo_edit.go` - Undo edit command definition
 - `internal/cmd/view/` - Business logic for the view command
 - `internal/cmd/str_replace/` - Business logic for the str_replace command
 - `internal/cmd/create/` - Business logic for the create command
 - `internal/cmd/insert/` - Business logic for the insert command
+- `internal/cmd/undo_edit/` - Business logic for the undo_edit command
 - `test/e2e/` - End-to-end tests that test the CLI binary
 - `go.mod` - Go module file defining dependencies (Cobra CLI framework)
 
@@ -153,6 +155,26 @@ eddie insert /path/to/file.txt 5 "This is a new line"
 eddie insert config.json 10 "  \"newKey\": \"newValue\","
 eddie insert script.sh 1 "#!/bin/bash"
 ```
+
+### undo_edit
+Undo the last edit operation on a file by restoring from backup.
+
+**Usage:**
+```bash
+eddie undo_edit path
+```
+
+**Parameters:**
+- `path`: The path to the file to restore from backup
+
+**Examples:**
+```bash
+eddie undo_edit /path/to/file.txt
+eddie undo_edit config.json
+eddie undo_edit script.sh
+```
+
+**Note:** This command automatically records edit operations when using `str_replace` or `insert` commands. Edit records are stored in `$XDG_CACHE_HOME/eddie/edits` (or `~/.cache/eddie/edits` if `XDG_CACHE_HOME` is not set). It reverses the most recent edit and validates that the file hasn't been modified by other means since the last tracked edit.
 
 # Development Guidelines
 

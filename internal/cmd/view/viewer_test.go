@@ -11,7 +11,7 @@ import (
 
 func TestViewer_parseRange(t *testing.T) {
 	v := &Viewer{}
-	
+
 	tests := []struct {
 		name      string
 		viewRange string
@@ -45,19 +45,19 @@ func TestViewer_parseRange(t *testing.T) {
 
 func TestViewer_View(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	// Create test file
 	testFile := filepath.Join(tmpDir, "test.txt")
 	content := "line1\nline2\nline3\nline4\nline5\n"
 	require.NoError(t, os.WriteFile(testFile, []byte(content), 0644))
-	
+
 	// Create test directory with files
 	testSubDir := filepath.Join(tmpDir, "subdir")
 	require.NoError(t, os.Mkdir(testSubDir, 0755))
 	require.NoError(t, os.WriteFile(filepath.Join(testSubDir, "file1.txt"), []byte("content"), 0644))
-	
+
 	v := &Viewer{}
-	
+
 	tests := []struct {
 		name    string
 		path    string
@@ -71,7 +71,7 @@ func TestViewer_View(t *testing.T) {
 		{"nonexistent path", "/nonexistent", "", true},
 		{"invalid range", testFile, "invalid", true},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := v.View(tt.path, tt.range_)

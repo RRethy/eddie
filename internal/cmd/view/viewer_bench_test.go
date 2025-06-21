@@ -9,7 +9,7 @@ import (
 
 func BenchmarkViewer_ViewFile(b *testing.B) {
 	tmpDir := b.TempDir()
-	
+
 	// Create test files of different sizes
 	sizes := []struct {
 		name string
@@ -19,7 +19,7 @@ func BenchmarkViewer_ViewFile(b *testing.B) {
 		{"medium", 10000},
 		{"large", 1000000},
 	}
-	
+
 	for _, size := range sizes {
 		b.Run(size.name, func(b *testing.B) {
 			// Create file with specified number of lines
@@ -29,10 +29,10 @@ func BenchmarkViewer_ViewFile(b *testing.B) {
 			if err != nil {
 				b.Fatal(err)
 			}
-			
+
 			v := &Viewer{}
 			b.ResetTimer()
-			
+
 			for i := 0; i < b.N; i++ {
 				err := v.viewFile(testFile, "")
 				if err != nil {
@@ -45,7 +45,7 @@ func BenchmarkViewer_ViewFile(b *testing.B) {
 
 func BenchmarkViewer_ViewFileWithRange(b *testing.B) {
 	tmpDir := b.TempDir()
-	
+
 	// Create large test file
 	content := strings.Repeat("this is a test line with some content\n", 100000)
 	testFile := filepath.Join(tmpDir, "bench_range.txt")
@@ -53,9 +53,9 @@ func BenchmarkViewer_ViewFileWithRange(b *testing.B) {
 	if err != nil {
 		b.Fatal(err)
 	}
-	
+
 	ranges := []struct {
-		name  string
+		name   string
 		range_ string
 	}{
 		{"first_100", "1,100"},
@@ -63,12 +63,12 @@ func BenchmarkViewer_ViewFileWithRange(b *testing.B) {
 		{"last_100", "99900,100000"},
 		{"to_end", "99900,-1"},
 	}
-	
+
 	for _, r := range ranges {
 		b.Run(r.name, func(b *testing.B) {
 			v := &Viewer{}
 			b.ResetTimer()
-			
+
 			for i := 0; i < b.N; i++ {
 				err := v.viewFile(testFile, r.range_)
 				if err != nil {
@@ -81,7 +81,7 @@ func BenchmarkViewer_ViewFileWithRange(b *testing.B) {
 
 func BenchmarkViewer_ViewDir(b *testing.B) {
 	tmpDir := b.TempDir()
-	
+
 	// Create directories with different numbers of files
 	sizes := []struct {
 		name  string
@@ -91,7 +91,7 @@ func BenchmarkViewer_ViewDir(b *testing.B) {
 		{"medium", 100},
 		{"large", 1000},
 	}
-	
+
 	for _, size := range sizes {
 		b.Run(size.name, func(b *testing.B) {
 			testDir := filepath.Join(tmpDir, "bench_"+size.name)
@@ -99,7 +99,7 @@ func BenchmarkViewer_ViewDir(b *testing.B) {
 			if err != nil {
 				b.Fatal(err)
 			}
-			
+
 			// Create files
 			for i := 0; i < size.files; i++ {
 				fileName := filepath.Join(testDir, "file"+string(rune(i))+".txt")
@@ -108,10 +108,10 @@ func BenchmarkViewer_ViewDir(b *testing.B) {
 					b.Fatal(err)
 				}
 			}
-			
+
 			v := &Viewer{}
 			b.ResetTimer()
-			
+
 			for i := 0; i < b.N; i++ {
 				err := v.viewDir(testDir)
 				if err != nil {
@@ -124,7 +124,7 @@ func BenchmarkViewer_ViewDir(b *testing.B) {
 
 func BenchmarkViewer_ParseRange(b *testing.B) {
 	v := &Viewer{}
-	
+
 	ranges := []string{
 		"",
 		"1,10",
@@ -132,7 +132,7 @@ func BenchmarkViewer_ParseRange(b *testing.B) {
 		"50,-1",
 		" 100 , 200 ",
 	}
-	
+
 	for _, r := range ranges {
 		b.Run("range_"+r, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {

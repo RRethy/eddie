@@ -11,7 +11,7 @@ import (
 
 func TestReplacer_StrReplace(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	tests := []struct {
 		name         string
 		content      string
