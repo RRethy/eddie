@@ -344,10 +344,10 @@ func TestSplit(t *testing.T) {
 ### CLAUDE.md Guidelines
 - **IMPORTANT** Always update CLAUDE.md with any new patterns or practices
 
-### Commit Strategy
-- **IMPORTANT** Commit small chunks of work frequently
-- **IMPORTANT** NEVER mention yourself code in commit messages
-- **IMPORTANT** Write short commit messages
+### Git Strategy
+- **IMPORTANT** ALWAYS keep commit messages to one line
+- **IMPORTANT** NEVER mention yourself in commit messages
+- **IMPORTANT** NEVER mention claude code in commit messages
 
 ### Testing Requirements
 - **Always test any code that is written**
