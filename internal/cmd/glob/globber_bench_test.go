@@ -9,7 +9,7 @@ import (
 
 func BenchmarkGlobber(b *testing.B) {
 	tmpDir := b.TempDir()
-	
+
 	for i := 0; i < 100; i++ {
 		file, err := os.Create(tmpDir + "/" + "test" + string(rune('0'+i%10)) + ".txt")
 		if err != nil {
@@ -19,7 +19,7 @@ func BenchmarkGlobber(b *testing.B) {
 	}
 
 	g := &GlobberSilent{}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = g.Glob("*.txt", tmpDir)

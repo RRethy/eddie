@@ -15,12 +15,12 @@ func TestGlobCommand(t *testing.T) {
 
 	files := []string{
 		"test1.txt",
-		"test2.txt", 
+		"test2.txt",
 		"config.json",
 		"main.go",
 		"helper.go",
 	}
-	
+
 	for _, f := range files {
 		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0644))
 	}
@@ -30,10 +30,10 @@ func TestGlobCommand(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(subDir, "nested.go"), []byte("content"), 0644))
 
 	tests := []struct {
-		name       string
-		args       []string
-		wantFiles  []string
-		wantErr    bool
+		name      string
+		args      []string
+		wantFiles []string
+		wantErr   bool
 	}{
 		{
 			name:      "glob txt files",

@@ -377,7 +377,7 @@ func TestMcpServer_handleUndoEdit(t *testing.T) {
 
 func TestMcpServer_handleGlob(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	files := []string{"test1.txt", "test2.txt", "main.go"}
 	for _, f := range files {
 		err := os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0644)

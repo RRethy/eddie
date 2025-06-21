@@ -138,7 +138,7 @@ func BenchmarkMcpServer_handleInsert(b *testing.B) {
 
 func BenchmarkMcpServer_handleGlob(b *testing.B) {
 	tmpDir := b.TempDir()
-	
+
 	for i := 0; i < 100; i++ {
 		err := os.WriteFile(filepath.Join(tmpDir, fmt.Sprintf("test%d.txt", i)), []byte("content"), 0644)
 		if err != nil {

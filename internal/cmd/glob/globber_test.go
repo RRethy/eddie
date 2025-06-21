@@ -64,7 +64,7 @@ func TestGlobber_Glob(t *testing.T) {
 
 func TestGlobber_GlobWithTempFiles(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	files := []string{"test1.txt", "test2.txt", "other.go"}
 	for _, f := range files {
 		file, err := os.Create(tmpDir + "/" + f)
