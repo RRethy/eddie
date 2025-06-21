@@ -26,7 +26,7 @@ func BenchmarkCreator(b *testing.B) {
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				path := filepath.Join(tmpDir, fmt.Sprintf("file_%d.txt", i))
-				if err := c.Create(path, content); err != nil {
+				if err := c.Create(path, content, false); err != nil {
 					b.Fatal(err)
 				}
 			}
@@ -42,7 +42,7 @@ func BenchmarkCreatorConcurrent(b *testing.B) {
 		i := 0
 		for pb.Next() {
 			path := filepath.Join(tmpDir, fmt.Sprintf("concurrent_%d.txt", i))
-			if err := c.Create(path, "test content"); err != nil {
+			if err := c.Create(path, "test content", false); err != nil {
 				b.Fatal(err)
 			}
 			i++

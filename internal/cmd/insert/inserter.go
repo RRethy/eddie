@@ -11,7 +11,7 @@ import (
 
 type Inserter struct{}
 
-func (i *Inserter) Insert(path, insertLine, newStr string) error {
+func (i *Inserter) Insert(path, insertLine, newStr string, showChanges bool) error {
 	info, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("stat %s: %w", path, err)
@@ -31,9 +31,14 @@ func (i *Inserter) Insert(path, insertLine, newStr string) error {
 		return fmt.Errorf("read file %s: %w", path, err)
 	}
 
-	modified, err := i.insertLine(string(content), lineNum, newStr)
+	original := string(content)
+	modified, err := i.insertLine(original, lineNum, newStr)
 	if err != nil {
 		return fmt.Errorf("insert line: %w", err)
+	}
+
+	if showChanges {
+		i.showDiff(path, original, modified, lineNum)
 	}
 
 	err = os.WriteFile(path, []byte(modified), info.Mode())
@@ -99,4 +104,42 @@ func (i *Inserter) insertLine(content string, lineNum int, newStr string) (strin
 	}
 
 	return joined, nil
+}
+
+func (i *Inserter) showDiff(path, original, modified string, lineNum int) {
+	fmt.Printf("\nChanges in %s:\n", path)
+	fmt.Println("--- Before")
+	fmt.Println("+++ After")
+	
+	origLines := strings.Split(original, "\n")
+	modLines := strings.Split(modified, "\n")
+	
+	// Show context around the insertion point
+	start := lineNum - 3
+	if start < 1 {
+		start = 1
+	}
+	end := lineNum + 3
+	if end > len(modLines) {
+		end = len(modLines)
+	}
+	
+	for i := start; i <= end; i++ {
+		if i == lineNum {
+			// Show the inserted line
+			if i <= len(modLines) {
+				fmt.Printf("+%s\n", modLines[i-1])
+			}
+		} else {
+			// Show existing lines for context
+			origIdx := i
+			if i > lineNum {
+				origIdx = i - 1 // Adjust for insertion
+			}
+			if origIdx <= len(origLines) && origIdx > 0 {
+				fmt.Printf(" %s\n", origLines[origIdx-1])
+			}
+		}
+	}
+	fmt.Println()
 }

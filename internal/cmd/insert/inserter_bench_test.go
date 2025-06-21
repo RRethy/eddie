@@ -36,7 +36,7 @@ func BenchmarkInserter_Insert(b *testing.B) {
 				}
 				b.StartTimer()
 
-				err = i.Insert(testFile, "50", "inserted line")
+				err = i.Insert(testFile, "50", "inserted line", false)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -75,7 +75,7 @@ func BenchmarkInserter_InsertPosition(b *testing.B) {
 				}
 				b.StartTimer()
 
-				err = i.Insert(testFile, pos.line, "inserted line")
+				err = i.Insert(testFile, pos.line, "inserted line", false)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -113,7 +113,7 @@ func BenchmarkInserter_InsertContentLength(b *testing.B) {
 				}
 				b.StartTimer()
 
-				err = i.Insert(testFile, "500", cl.content)
+				err = i.Insert(testFile, "500", cl.content, false)
 				if err != nil {
 					b.Fatal(err)
 				}

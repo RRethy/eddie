@@ -10,7 +10,7 @@ import (
 
 type Replacer struct{}
 
-func (r *Replacer) StrReplace(path, oldStr, newStr string) error {
+func (r *Replacer) StrReplace(path, oldStr, newStr string, showChanges bool) error {
 	info, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("stat %s: %w", path, err)
@@ -33,6 +33,10 @@ func (r *Replacer) StrReplace(path, oldStr, newStr string) error {
 		return nil
 	}
 
+	if showChanges {
+		r.showDiff(path, original, modified)
+	}
+
 	err = os.WriteFile(path, []byte(modified), info.Mode())
 	if err != nil {
 		return fmt.Errorf("write file %s: %w", path, err)
@@ -47,4 +51,40 @@ func (r *Replacer) StrReplace(path, oldStr, newStr string) error {
 	count := strings.Count(original, oldStr)
 	fmt.Printf("Replaced %d occurrence(s) of %q with %q in %s\n", count, oldStr, newStr, path)
 	return nil
+}
+
+func (r *Replacer) showDiff(path, original, modified string) {
+	fmt.Printf("\nChanges in %s:\n", path)
+	fmt.Println("--- Before")
+	fmt.Println("+++ After")
+	
+	origLines := strings.Split(original, "\n")
+	modLines := strings.Split(modified, "\n")
+	
+	maxLines := len(origLines)
+	if len(modLines) > maxLines {
+		maxLines = len(modLines)
+	}
+	
+	for i := 0; i < maxLines; i++ {
+		origLine := ""
+		modLine := ""
+		
+		if i < len(origLines) {
+			origLine = origLines[i]
+		}
+		if i < len(modLines) {
+			modLine = modLines[i]
+		}
+		
+		if origLine != modLine {
+			if origLine != "" {
+				fmt.Printf("-%s\n", origLine)
+			}
+			if modLine != "" {
+				fmt.Printf("+%s\n", modLine)
+			}
+		}
+	}
+	fmt.Println()
 }

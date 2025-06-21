@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Creator struct{}
 
-func (c *Creator) Create(path, fileText string) error {
+func (c *Creator) Create(path, fileText string, showChanges bool) error {
 	if _, err := os.Stat(path); err == nil {
 		return fmt.Errorf("file already exists: %s", path)
 	}
@@ -26,6 +27,20 @@ func (c *Creator) Create(path, fileText string) error {
 		return fmt.Errorf("write file %s: %w", path, err)
 	}
 
+	if showChanges {
+		c.showContent(path, fileText)
+	}
+
 	fmt.Printf("Created file: %s (%d bytes)\n", path, len(fileText))
 	return nil
+}
+
+func (c *Creator) showContent(path, content string) {
+	fmt.Printf("\nContent of %s:\n", path)
+	fmt.Println("--- New file")
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		fmt.Printf("+%s\n", line)
+	}
+	fmt.Println()
 }

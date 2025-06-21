@@ -26,7 +26,7 @@ type EditHistory struct {
 	Edits    []EditRecord `json:"edits"`
 }
 
-func (u *UndoEditor) UndoEdit(path string) error {
+func (u *UndoEditor) UndoEdit(path string, showChanges bool) error {
 	info, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return fmt.Errorf("file does not exist: %s", path)
@@ -54,9 +54,26 @@ func (u *UndoEditor) UndoEdit(path string) error {
 			editRecord.FileModTime.Format(time.RFC3339), info.ModTime().Format(time.RFC3339))
 	}
 
+	var beforeContent string
+	if showChanges {
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("read file before undo: %w", err)
+		}
+		beforeContent = string(content)
+	}
+
 	err = u.applyReverseEdit(path, &editRecord)
 	if err != nil {
 		return fmt.Errorf("apply reverse edit: %w", err)
+	}
+
+	if showChanges {
+		afterContent, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("read file after undo: %w", err)
+		}
+		u.showDiff(path, beforeContent, string(afterContent))
 	}
 
 	editHistory.Edits = editHistory.Edits[:lastEditIndex]
@@ -201,4 +218,40 @@ func (u *UndoEditor) writeEditHistory(editPath string, history *EditHistory) err
 	}
 
 	return nil
+}
+
+func (u *UndoEditor) showDiff(path, before, after string) {
+	fmt.Printf("\nChanges in %s:\n", path)
+	fmt.Println("--- Before undo")
+	fmt.Println("+++ After undo")
+	
+	beforeLines := strings.Split(before, "\n")
+	afterLines := strings.Split(after, "\n")
+	
+	maxLines := len(beforeLines)
+	if len(afterLines) > maxLines {
+		maxLines = len(afterLines)
+	}
+	
+	for i := 0; i < maxLines; i++ {
+		beforeLine := ""
+		afterLine := ""
+		
+		if i < len(beforeLines) {
+			beforeLine = beforeLines[i]
+		}
+		if i < len(afterLines) {
+			afterLine = afterLines[i]
+		}
+		
+		if beforeLine != afterLine {
+			if beforeLine != "" {
+				fmt.Printf("-%s\n", beforeLine)
+			}
+			if afterLine != "" {
+				fmt.Printf("+%s\n", afterLine)
+			}
+		}
+	}
+	fmt.Println()
 }

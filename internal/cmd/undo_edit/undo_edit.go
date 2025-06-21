@@ -1,5 +1,5 @@
 package undo_edit
 
-func UndoEdit(path string) error {
-	return (&UndoEditor{}).UndoEdit(path)
+func UndoEdit(path string, showChanges bool) error {
+	return (&UndoEditor{}).UndoEdit(path, showChanges)
 }

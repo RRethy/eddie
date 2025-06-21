@@ -56,6 +56,7 @@ func (m *McpServer) createStrReplaceTool() *mcp.Tool {
 		mcp.WithString("path", mcp.Required(), mcp.Description("The path to the file to modify")),
 		mcp.WithString("old_str", mcp.Required(), mcp.Description("The string to search for and replace")),
 		mcp.WithString("new_str", mcp.Required(), mcp.Description("The string to replace old_str with")),
+		mcp.WithBoolean("show_changes", mcp.Description("Show the changes made to the file")),
 	)
 	return &tool
 }
@@ -65,6 +66,7 @@ func (m *McpServer) createCreateTool() *mcp.Tool {
 		mcp.WithDescription("Create a new file with specified content"),
 		mcp.WithString("path", mcp.Required(), mcp.Description("The path where the new file should be created")),
 		mcp.WithString("content", mcp.Required(), mcp.Description("The content to write to the new file")),
+		mcp.WithBoolean("show_changes", mcp.Description("Show the content of the created file")),
 	)
 	return &tool
 }
@@ -75,6 +77,7 @@ func (m *McpServer) createInsertTool() *mcp.Tool {
 		mcp.WithString("path", mcp.Required(), mcp.Description("The path to the file to modify")),
 		mcp.WithNumber("line", mcp.Required(), mcp.Description("The line number where the new line should be inserted (1-based)")),
 		mcp.WithString("content", mcp.Required(), mcp.Description("The content of the new line to insert")),
+		mcp.WithBoolean("show_changes", mcp.Description("Show the changes made to the file")),
 	)
 	return &tool
 }
@@ -83,6 +86,7 @@ func (m *McpServer) createUndoEditTool() *mcp.Tool {
 	tool := mcp.NewTool("undo_edit",
 		mcp.WithDescription("Undo the last edit operation on a file"),
 		mcp.WithString("path", mcp.Required(), mcp.Description("The path to the file to restore from backup")),
+		mcp.WithBoolean("show_changes", mcp.Description("Show the changes made during the undo operation")),
 	)
 	return &tool
 }
@@ -161,7 +165,12 @@ func (m *McpServer) handleStrReplace(ctx context.Context, req mcp.CallToolReques
 		return nil, fmt.Errorf("new_str parameter required")
 	}
 
-	err := str_replace.StrReplace(path, oldStr, newStr)
+	showChanges := false
+	if sc, ok := args["show_changes"].(bool); ok {
+		showChanges = sc
+	}
+
+	err := str_replace.StrReplace(path, oldStr, newStr, showChanges)
 	if err != nil {
 		return &mcp.CallToolResult{
 			IsError: true,
@@ -193,7 +202,12 @@ func (m *McpServer) handleCreate(ctx context.Context, req mcp.CallToolRequest) (
 		return nil, fmt.Errorf("content parameter required")
 	}
 
-	err := create.Create(path, content)
+	showChanges := false
+	if sc, ok := args["show_changes"].(bool); ok {
+		showChanges = sc
+	}
+
+	err := create.Create(path, content, showChanges)
 	if err != nil {
 		return &mcp.CallToolResult{
 			IsError: true,
@@ -230,7 +244,12 @@ func (m *McpServer) handleInsert(ctx context.Context, req mcp.CallToolRequest) (
 		return nil, fmt.Errorf("content parameter required")
 	}
 
-	err := insert.Insert(path, line, content)
+	showChanges := false
+	if sc, ok := args["show_changes"].(bool); ok {
+		showChanges = sc
+	}
+
+	err := insert.Insert(path, line, content, showChanges)
 	if err != nil {
 		return &mcp.CallToolResult{
 			IsError: true,
@@ -258,7 +277,12 @@ func (m *McpServer) handleUndoEdit(ctx context.Context, req mcp.CallToolRequest)
 		return nil, fmt.Errorf("path parameter required")
 	}
 
-	err := undo_edit.UndoEdit(path)
+	showChanges := false
+	if sc, ok := args["show_changes"].(bool); ok {
+		showChanges = sc
+	}
+
+	err := undo_edit.UndoEdit(path, showChanges)
 	if err != nil {
 		return &mcp.CallToolResult{
 			IsError: true,

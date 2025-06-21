@@ -131,7 +131,7 @@ func TestUndoEditor_UndoEdit_StrReplace(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, modifiedContent, string(currentContent))
 
-	err = u.UndoEdit(testFile)
+	err = u.UndoEdit(testFile, false)
 	require.NoError(t, err)
 
 	restoredContent, err := os.ReadFile(testFile)
@@ -172,7 +172,7 @@ func TestUndoEditor_UndoEdit_Insert(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, modifiedContent, string(currentContent))
 
-	err = u.UndoEdit(testFile)
+	err = u.UndoEdit(testFile, false)
 	require.NoError(t, err)
 
 	restoredContent, err := os.ReadFile(testFile)
@@ -209,14 +209,14 @@ func TestUndoEditor_UndoEdit_Multiple(t *testing.T) {
 	err = u.RecordEdit(testFile, "str_replace", "2", "3", -1)
 	require.NoError(t, err)
 
-	err = u.UndoEdit(testFile)
+	err = u.UndoEdit(testFile, false)
 	require.NoError(t, err)
 
 	restoredContent, err := os.ReadFile(testFile)
 	require.NoError(t, err)
 	assert.Equal(t, content2, string(restoredContent))
 
-	err = u.UndoEdit(testFile)
+	err = u.UndoEdit(testFile, false)
 	require.NoError(t, err)
 
 	restoredContent, err = os.ReadFile(testFile)
@@ -258,7 +258,7 @@ func TestUndoEditor_UndoEdit_ModificationTimeValidation(t *testing.T) {
 	externalContent := "external change\n"
 	require.NoError(t, os.WriteFile(testFile, []byte(externalContent), 0644))
 
-	err = u.UndoEdit(testFile)
+	err = u.UndoEdit(testFile, false)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "file has been modified since last tracked edit")
 }
@@ -303,7 +303,7 @@ func TestUndoEditor_UndoEdit_Errors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			path := tt.setup()
-			err := u.UndoEdit(path)
+			err := u.UndoEdit(path, false)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
 		})
