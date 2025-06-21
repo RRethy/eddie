@@ -14,6 +14,7 @@ import (
 	"github.com/RRethy/eddie/internal/cmd/create"
 	"github.com/RRethy/eddie/internal/cmd/glob"
 	"github.com/RRethy/eddie/internal/cmd/insert"
+	"github.com/RRethy/eddie/internal/cmd/ls"
 	"github.com/RRethy/eddie/internal/cmd/str_replace"
 	"github.com/RRethy/eddie/internal/cmd/undo_edit"
 	"github.com/RRethy/eddie/internal/cmd/view"
@@ -34,6 +35,7 @@ func (m *McpServer) Mcp() error {
 	s.AddTool(*m.createInsertTool(), m.handleInsert)
 	s.AddTool(*m.createUndoEditTool(), m.handleUndoEdit)
 	s.AddTool(*m.createGlobTool(), m.handleGlob)
+	s.AddTool(*m.createLsTool(), m.handleLs)
 
 	return server.ServeStdio(s)
 }
@@ -294,6 +296,55 @@ func (m *McpServer) handleGlob(ctx context.Context, req mcp.CallToolRequest) (*m
 	os.Stdout = w
 
 	err := glob.Glob(pattern, path)
+
+	w.Close()
+	os.Stdout = old
+
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+	output := buf.String()
+
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				mcp.NewTextContent(fmt.Sprintf("Error: %v", err)),
+			},
+		}, nil
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.NewTextContent(output),
+		},
+	}, nil
+}
+
+func (m *McpServer) createLsTool() *mcp.Tool {
+	tool := mcp.NewTool("ls",
+		mcp.WithDescription("List directory contents"),
+		mcp.WithString("path", mcp.Description("The directory to search in. If not specified, the current working directory will be used. IMPORTANT: Omit this field to use the default directory. DO NOT enter \"undefined\" or \"null\" - simply omit it for the default behavior. Must be a valid directory path if provided.")),
+		mcp.WithReadOnlyHintAnnotation(true),
+	)
+	return &tool
+}
+
+func (m *McpServer) handleLs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, ok := req.Params.Arguments.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid arguments")
+	}
+
+	path := "."
+	if p, ok := args["path"].(string); ok {
+		path = p
+	}
+
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	err := ls.Ls(path)
 
 	w.Close()
 	os.Stdout = old
