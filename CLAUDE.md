@@ -47,7 +47,179 @@ go mod tidy
 
 The application follows the standard Cobra CLI pattern:
 - `main.go` serves as the entry point
-- `cmd/` package contains command definitions
-- Root command is defined in `cmd/root.go` with placeholder descriptions
+- `cmd/` package contains command definitions, only parses flags and arguments and calls internal logic
+- `internal/` package contains business logic
+- `internal/cmd/` contains business logic for specific commands
 
-The application is licensed under GNU AGPL v3.
+# Development Guidelines
+
+## Go Code Style - Rob Pike Style (MANDATORY)
+
+### Rob Pike's Philosophy
+**"Simplicity is the ultimate sophistication"** - Write code as if the person maintaining it is a violent psychopath who knows where you live.
+
+### Core Principles (NON-NEGOTIABLE)
+- **Clarity above all** - If it's not immediately obvious, rewrite it
+- **No clever code** - Clever code is bug-prone code
+- **Shorter is better** - But not at the expense of clarity
+- **Gofmt is gospel** - Never commit unformatted code
+- **One thing per function** - Functions should do exactly one thing well
+- **Fail fast and explicitly** - No hidden control flow, no magic
+
+### Rob Pike Naming Rules (STRICT)
+- **Package names**: Single word, lowercase, no plurals (`net` not `networks`)
+- **Variables**: SHORT. `i` not `index`, `n` not `numberOfItems`, `s` not `inputString`
+- **Functions**: Descriptive verbs. `Get`, `Set`, `Read`, `Write` - not `Retrieve` or `Obtain`
+- **No stuttering**: `log.Print()` not `log.LogPrint()`
+- **Constants**: CamelCase, not SCREAMING_SNAKE_CASE
+- **Receivers**: Single letter that makes sense (`c *Client`, `r *Reader`)
+
+### Rob Pike Function Rules
+- **Functions ≤ 30 lines** - If longer, split it up
+- **No deep nesting** - Use early returns religiously
+- **Error handling first** - Check errors immediately, don't defer
+- **No side effects** - Functions should be predictable
+- **Return multiple values** - Don't create structs just to return two things
+
+```go
+// GOOD - Rob Pike style
+func read(r io.Reader) ([]byte, error) {
+    buf := make([]byte, 1024)
+    n, err := r.Read(buf)
+    if err != nil {
+        return nil, err
+    }
+    return buf[:n], nil
+}
+
+// BAD - Not Pike style
+func readWithComplexity(reader io.Reader) *Result {
+    result := &Result{}
+    if reader != nil {
+        buffer := make([]byte, 1024)
+        if bytesRead, readError := reader.Read(buffer); readError == nil {
+            result.Data = buffer[:bytesRead]
+            result.Success = true
+        } else {
+            result.Error = readError
+        }
+    }
+    return result
+}
+```
+
+### Rob Pike Error Handling (NO EXCEPTIONS)
+**"Errors are values"** - Treat them as such, don't hide them
+
+```go
+// ALWAYS do this immediately after function calls
+f, err := os.Open(name)
+if err != nil {
+    return err
+}
+defer f.Close()
+
+// NEVER do this
+f, _ := os.Open(name) // FORBIDDEN
+
+// Add context when wrapping
+if err != nil {
+    return fmt.Errorf("open %s: %w", name, err)
+}
+```
+
+**Rules:**
+- Check every error - no `_` assignments
+- Handle errors at the call site, don't pass them up blindly
+- Add meaningful context when wrapping
+- Use `%w` for error wrapping, not `%v`
+
+### Rob Pike Testing Approach
+**"Test what matters, not what's easy"**
+
+```go
+// Table-driven tests - Pike's preferred pattern
+func TestSplit(t *testing.T) {
+    tests := []struct {
+        input string
+        sep   string
+        want  []string
+    }{
+        {"a,b,c", ",", []string{"a", "b", "c"}},
+        {"", ",", []string{""}},
+        {"a", ",", []string{"a"}},
+    }
+    
+    for _, tt := range tests {
+        got := strings.Split(tt.input, tt.sep)
+        if !reflect.DeepEqual(got, tt.want) {
+            t.Errorf("Split(%q, %q) = %v, want %v", 
+                tt.input, tt.sep, got, tt.want)
+        }
+    }
+}
+```
+
+**Mandatory:**
+- Test the exported interface, not internals
+- Table-driven tests for multiple cases
+- Clear test names describing what's being tested
+- No mocking unless absolutely necessary
+
+## Development Workflow
+
+### CLAUDE.md Guidelines
+- Update CLAUDE.md with any new patterns or practices
+
+### Commit Strategy
+- **IMPORTANT** Commit small chunks of work frequently
+- **IMPORTANT** NEVER mention claude code in commit messages
+- Write succinct commit messages
+
+### Testing Requirements
+- **Always test any code that is written**
+- Run tests before committing: `go test ./...`
+- Include both positive and negative test cases
+- Test edge cases and error conditions
+- Maintain high test coverage for critical paths
+
+### Rob Pike Code Review Checklist (ENFORCE STRICTLY)
+- [ ] **Gofmt applied** - Reject if not formatted
+- [ ] **Variable names ≤ 8 characters** - Longer names need justification  
+- [ ] **Functions ≤ 30 lines** - Split if longer
+- [ ] **No nested if statements > 3 levels** - Use early returns
+- [ ] **Every error checked** - No `_` assignments
+- [ ] **No clever tricks** - Code should be boring
+- [ ] **Exported functions documented** - Brief and clear
+- [ ] **Tests cover the interface** - Not implementation details
+
+### Forbidden Patterns
+```go
+// NEVER write code like this:
+if condition {
+    if anotherCondition {
+        if yetAnother {
+            doSomething()
+        }
+    }
+}
+
+// ALWAYS write like this:
+if !condition {
+    return
+}
+if !anotherCondition {
+    return  
+}
+if !yetAnother {
+    return
+}
+doSomething()
+```
+
+### The Pike Mantra
+**"Clear is better than clever"**
+**"Simple is better than complex"** 
+**"Readable is better than terse"**
+
+When in doubt, choose the most obvious solution.
