@@ -24,8 +24,14 @@ go build -o eddie && ./eddie
 
 ### Standard Go Commands
 ```bash
-# Run tests
+# Run tests (unit and integration)
 go test ./...
+
+# Run only unit tests
+go test ./internal/...
+
+# Run only e2e tests
+go test ./test/e2e/...
 
 # Format code
 go fmt ./...
@@ -45,6 +51,7 @@ go mod tidy
 - `cmd/str_replace.go` - String replacement command definition
 - `internal/cmd/view/` - Business logic for the view command
 - `internal/cmd/str_replace/` - Business logic for the str_replace command
+- `test/e2e/` - End-to-end tests that test the CLI binary
 - `go.mod` - Go module file defining dependencies (Cobra CLI framework)
 
 ## Architecture
