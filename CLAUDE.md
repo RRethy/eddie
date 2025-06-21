@@ -58,8 +58,10 @@ go mod tidy
 - `cmd/root.go` - Root Cobra command definition with basic CLI setup
 - `cmd/view.go` - View command definition for file/directory inspection
 - `cmd/str_replace.go` - String replacement command definition
+- `cmd/create.go` - File creation command definition
 - `internal/cmd/view/` - Business logic for the view command
 - `internal/cmd/str_replace/` - Business logic for the str_replace command
+- `internal/cmd/create/` - Business logic for the create command
 - `test/e2e/` - End-to-end tests that test the CLI binary
 - `go.mod` - Go module file defining dependencies (Cobra CLI framework)
 
@@ -109,6 +111,25 @@ eddie str_replace path old_str new_str
 ```bash
 eddie str_replace /path/to/file.txt "old text" "new text"
 eddie str_replace config.json "localhost" "example.com"
+```
+
+### create
+Create a new file with the specified content.
+
+**Usage:**
+```bash
+eddie create path file_text
+```
+
+**Parameters:**
+- `path`: The path where the new file should be created
+- `file_text`: The content to write to the new file
+
+**Examples:**
+```bash
+eddie create /path/to/newfile.txt "Hello, World!"
+eddie create config.json '{"key": "value"}'
+eddie create script.sh "#!/bin/bash\necho 'Hello'"
 ```
 
 # Development Guidelines
