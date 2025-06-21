@@ -59,9 +59,11 @@ go mod tidy
 - `cmd/view.go` - View command definition for file/directory inspection
 - `cmd/str_replace.go` - String replacement command definition
 - `cmd/create.go` - File creation command definition
+- `cmd/insert.go` - Line insertion command definition
 - `internal/cmd/view/` - Business logic for the view command
 - `internal/cmd/str_replace/` - Business logic for the str_replace command
 - `internal/cmd/create/` - Business logic for the create command
+- `internal/cmd/insert/` - Business logic for the insert command
 - `test/e2e/` - End-to-end tests that test the CLI binary
 - `go.mod` - Go module file defining dependencies (Cobra CLI framework)
 
@@ -130,6 +132,26 @@ eddie create path file_text
 eddie create /path/to/newfile.txt "Hello, World!"
 eddie create config.json '{"key": "value"}'
 eddie create script.sh "#!/bin/bash\necho 'Hello'"
+```
+
+### insert
+Insert a new line at the specified line number in a file.
+
+**Usage:**
+```bash
+eddie insert path insert_line new_str
+```
+
+**Parameters:**
+- `path`: The path to the file to modify
+- `insert_line`: The line number where the new line should be inserted (1-based)
+- `new_str`: The content of the new line to insert
+
+**Examples:**
+```bash
+eddie insert /path/to/file.txt 5 "This is a new line"
+eddie insert config.json 10 "  \"newKey\": \"newValue\","
+eddie insert script.sh 1 "#!/bin/bash"
 ```
 
 # Development Guidelines
