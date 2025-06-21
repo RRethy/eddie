@@ -42,7 +42,9 @@ go mod tidy
 - `main.go` - Entry point that calls `cmd.Execute()`
 - `cmd/root.go` - Root Cobra command definition with basic CLI setup
 - `cmd/view.go` - View command definition for file/directory inspection
+- `cmd/str_replace.go` - String replacement command definition
 - `internal/cmd/view/` - Business logic for the view command
+- `internal/cmd/str_replace/` - Business logic for the str_replace command
 - `go.mod` - Go module file defining dependencies (Cobra CLI framework)
 
 ## Architecture
@@ -72,6 +74,25 @@ eddie view path [view_range]
 eddie view /path/to/file.txt
 eddie view /path/to/directory  
 eddie view /path/to/file.txt 10,20
+```
+
+### str_replace
+Replace all occurrences of a string in a file with another string.
+
+**Usage:**
+```bash
+eddie str_replace path old_str new_str
+```
+
+**Parameters:**
+- `path`: The path to the file to modify
+- `old_str`: The string to search for and replace
+- `new_str`: The string to replace old_str with
+
+**Examples:**
+```bash
+eddie str_replace /path/to/file.txt "old text" "new text"
+eddie str_replace config.json "localhost" "example.com"
 ```
 
 # Development Guidelines
