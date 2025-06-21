@@ -68,12 +68,10 @@ func TestCreator_Create(t *testing.T) {
 
 			require.NoError(t, err)
 
-			// Verify file was created with correct content
 			content, err := os.ReadFile(tt.path)
 			require.NoError(t, err)
 			assert.Equal(t, tt.fileText, string(content))
 
-			// Verify file permissions
 			info, err := os.Stat(tt.path)
 			require.NoError(t, err)
 			assert.Equal(t, os.FileMode(0644), info.Mode().Perm())
@@ -125,22 +123,18 @@ func TestCreator_Create_DirectoryCreation(t *testing.T) {
 	tmpDir := t.TempDir()
 	c := &Creator{}
 
-	// Test creating file in non-existent nested directories
 	deepPath := filepath.Join(tmpDir, "level1", "level2", "level3", "file.txt")
 	err := c.Create(deepPath, "deep content")
 	require.NoError(t, err)
 
-	// Verify all directories were created
 	assert.DirExists(t, filepath.Join(tmpDir, "level1"))
 	assert.DirExists(t, filepath.Join(tmpDir, "level1", "level2"))
 	assert.DirExists(t, filepath.Join(tmpDir, "level1", "level2", "level3"))
 
-	// Verify file content
 	content, err := os.ReadFile(deepPath)
 	require.NoError(t, err)
 	assert.Equal(t, "deep content", string(content))
 
-	// Verify directory permissions
 	info, err := os.Stat(filepath.Join(tmpDir, "level1"))
 	require.NoError(t, err)
 	assert.Equal(t, os.FileMode(0755), info.Mode().Perm())
@@ -177,8 +171,7 @@ func TestCreator_Create_EdgeCases(t *testing.T) {
 			err := c.Create(tt.path, tt.fileText)
 			require.NoError(t, err)
 
-			// Clean up current directory file
-			if tt.name == "file in current directory" {
+				if tt.name == "file in current directory" {
 				defer os.Remove(tt.path)
 			}
 

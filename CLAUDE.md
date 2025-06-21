@@ -190,6 +190,7 @@ eddie undo_edit script.sh
 - **Gofmt is gospel** - Never commit unformatted code
 - **One thing per function** - Functions should do exactly one thing well
 - **Fail fast and explicitly** - No hidden control flow, no magic
+- **NO COMMENTS** - Code should be self-explanatory. Only add comments for exported functions/types or truly complex algorithms that cannot be simplified
 
 ### Rob Pike Naming Rules (STRICT)
 - **Package names**: Single word, lowercase, no plurals (`net` not `networks`)
@@ -324,7 +325,8 @@ func TestSplit(t *testing.T) {
 - [ ] **No nested if statements > 3 levels** - Use early returns
 - [ ] **Every error checked** - No `_` assignments
 - [ ] **No clever tricks** - Code should be boring
-- [ ] **Exported functions documented** - Brief and clear
+- [ ] **NO COMMENTS** - Code must be self-explanatory, comments indicate unclear code
+- [ ] **Exported functions documented** - Brief and clear (only exception to no-comment rule)
 - [ ] **Tests cover the interface** - Not implementation details
 
 ### Forbidden Patterns

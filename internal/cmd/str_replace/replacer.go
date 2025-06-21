@@ -38,7 +38,6 @@ func (r *Replacer) StrReplace(path, oldStr, newStr string) error {
 		return fmt.Errorf("write file %s: %w", path, err)
 	}
 
-	// Record edit for undo after file is written
 	undoEditor := &undo_edit.UndoEditor{}
 	err = undoEditor.RecordEdit(path, "str_replace", oldStr, newStr, -1)
 	if err != nil {

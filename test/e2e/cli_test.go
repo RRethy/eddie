@@ -23,7 +23,7 @@ func TestCLIBasics(t *testing.T) {
 			name:       "version flag",
 			args:       []string{"--version"},
 			wantOutput: "",
-			wantErr:    true, // Version not implemented yet, should error
+			wantErr:    true,
 		},
 		{
 			name:       "no arguments",
@@ -81,22 +81,22 @@ func TestCommandCompletion(t *testing.T) {
 		{
 			name:    "view with partial args",
 			args:    []string{"view"},
-			wantErr: false, // Should show error message but not exit with error
+			wantErr: false,
 		},
 		{
 			name:    "str_replace with partial args",
 			args:    []string{"str_replace"},
-			wantErr: false, // Should show error message but not exit with error
+			wantErr: false,
 		},
 		{
 			name:    "str_replace with one arg",
 			args:    []string{"str_replace", "file.txt"},
-			wantErr: false, // Should show error message but not exit with error
+			wantErr: false,
 		},
 		{
 			name:    "str_replace with two args",
 			args:    []string{"str_replace", "file.txt", "old"},
-			wantErr: false, // Should show error message but not exit with error
+			wantErr: false,
 		},
 	}
 
@@ -107,7 +107,6 @@ func TestCommandCompletion(t *testing.T) {
 			if tt.wantErr {
 				assert.True(t, err != nil || stderr != "", "Expected error but got none")
 			} else {
-				// Commands should handle missing args gracefully
 				assert.Contains(t, stdout, "Error:")
 			}
 		})

@@ -46,12 +46,10 @@ func TestViewer_parseRange(t *testing.T) {
 func TestViewer_View(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	// Create test file
 	testFile := filepath.Join(tmpDir, "test.txt")
 	content := "line1\nline2\nline3\nline4\nline5\n"
 	require.NoError(t, os.WriteFile(testFile, []byte(content), 0644))
 
-	// Create test directory with files
 	testSubDir := filepath.Join(tmpDir, "subdir")
 	require.NoError(t, os.Mkdir(testSubDir, 0755))
 	require.NoError(t, os.WriteFile(filepath.Join(testSubDir, "file1.txt"), []byte("content"), 0644))

@@ -80,7 +80,6 @@ func TestStrReplaceCommand(t *testing.T) {
 			require.NoError(t, err, "stderr: %s", stderr)
 			assert.Contains(t, stdout, tt.wantOutput)
 
-			// Verify file content was changed correctly
 			result, err := os.ReadFile(testFile)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantContent, string(result))
@@ -123,12 +122,10 @@ func TestStrReplaceCommandErrors(t *testing.T) {
 			stdout, stderr, err := runEddie(t, tt.args...)
 
 			if tt.name == "missing arguments" || tt.name == "missing new_str" {
-				// These errors are printed to stdout, not stderr
-				assert.Contains(t, stdout, tt.wantErr)
+					assert.Contains(t, stdout, tt.wantErr)
 				return
 			}
 
-			// File system errors should cause the command to exit with error
 			assert.True(t, err != nil || stderr != "", "Expected error but got none")
 			if err != nil {
 				assert.Contains(t, err.Error(), "exit status")
