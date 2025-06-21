@@ -39,8 +39,9 @@ func (m *McpServer) Mcp() error {
 func (m *McpServer) createViewTool() *mcp.Tool {
 	tool := mcp.NewTool("view",
 		mcp.WithDescription("View file contents or list directory contents"),
-		mcp.WithString("path", mcp.Required()),
-		mcp.WithString("range"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("The path to the file or directory to view")),
+		mcp.WithString("range", mcp.Description("Range of lines to view in format \"start,end\". If \"end\" is -1, reads to end of file. Ignored for directories.")),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 	return &tool
 }
@@ -48,9 +49,9 @@ func (m *McpServer) createViewTool() *mcp.Tool {
 func (m *McpServer) createStrReplaceTool() *mcp.Tool {
 	tool := mcp.NewTool("str_replace",
 		mcp.WithDescription("Replace all occurrences of a string in a file"),
-		mcp.WithString("path", mcp.Required()),
-		mcp.WithString("old_str", mcp.Required()),
-		mcp.WithString("new_str", mcp.Required()),
+		mcp.WithString("path", mcp.Required(), mcp.Description("The path to the file to modify")),
+		mcp.WithString("old_str", mcp.Required(), mcp.Description("The string to search for and replace")),
+		mcp.WithString("new_str", mcp.Required(), mcp.Description("The string to replace old_str with")),
 	)
 	return &tool
 }
@@ -58,8 +59,8 @@ func (m *McpServer) createStrReplaceTool() *mcp.Tool {
 func (m *McpServer) createCreateTool() *mcp.Tool {
 	tool := mcp.NewTool("create",
 		mcp.WithDescription("Create a new file with specified content"),
-		mcp.WithString("path", mcp.Required()),
-		mcp.WithString("content", mcp.Required()),
+		mcp.WithString("path", mcp.Required(), mcp.Description("The path where the new file should be created")),
+		mcp.WithString("content", mcp.Required(), mcp.Description("The content to write to the new file")),
 	)
 	return &tool
 }
@@ -67,9 +68,9 @@ func (m *McpServer) createCreateTool() *mcp.Tool {
 func (m *McpServer) createInsertTool() *mcp.Tool {
 	tool := mcp.NewTool("insert",
 		mcp.WithDescription("Insert a new line at specified line number"),
-		mcp.WithString("path", mcp.Required()),
-		mcp.WithNumber("line", mcp.Required()),
-		mcp.WithString("content", mcp.Required()),
+		mcp.WithString("path", mcp.Required(), mcp.Description("The path to the file to modify")),
+		mcp.WithNumber("line", mcp.Required(), mcp.Description("The line number where the new line should be inserted (1-based)")),
+		mcp.WithString("content", mcp.Required(), mcp.Description("The content of the new line to insert")),
 	)
 	return &tool
 }
@@ -77,7 +78,7 @@ func (m *McpServer) createInsertTool() *mcp.Tool {
 func (m *McpServer) createUndoEditTool() *mcp.Tool {
 	tool := mcp.NewTool("undo_edit",
 		mcp.WithDescription("Undo the last edit operation on a file"),
-		mcp.WithString("path", mcp.Required()),
+		mcp.WithString("path", mcp.Required(), mcp.Description("The path to the file to restore from backup")),
 	)
 	return &tool
 }
