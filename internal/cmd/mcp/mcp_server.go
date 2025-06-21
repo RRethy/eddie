@@ -12,6 +12,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 
 	"github.com/RRethy/eddie/internal/cmd/create"
+	"github.com/RRethy/eddie/internal/cmd/glob"
 	"github.com/RRethy/eddie/internal/cmd/insert"
 	"github.com/RRethy/eddie/internal/cmd/str_replace"
 	"github.com/RRethy/eddie/internal/cmd/undo_edit"
@@ -32,6 +33,7 @@ func (m *McpServer) Mcp() error {
 	s.AddTool(*m.createCreateTool(), m.handleCreate)
 	s.AddTool(*m.createInsertTool(), m.handleInsert)
 	s.AddTool(*m.createUndoEditTool(), m.handleUndoEdit)
+	s.AddTool(*m.createGlobTool(), m.handleGlob)
 
 	return server.ServeStdio(s)
 }
@@ -79,6 +81,16 @@ func (m *McpServer) createUndoEditTool() *mcp.Tool {
 	tool := mcp.NewTool("undo_edit",
 		mcp.WithDescription("Undo the last edit operation on a file"),
 		mcp.WithString("path", mcp.Required(), mcp.Description("The path to the file to restore from backup")),
+	)
+	return &tool
+}
+
+func (m *McpServer) createGlobTool() *mcp.Tool {
+	tool := mcp.NewTool("glob",
+		mcp.WithDescription("Fast file pattern matching tool that works with any codebase size"),
+		mcp.WithString("pattern", mcp.Required(), mcp.Description("The glob pattern to match files against")),
+		mcp.WithString("path", mcp.Description("The directory to search in. If not specified, the current working directory will be used. IMPORTANT: Omit this field to use the default directory. DO NOT enter \"undefined\" or \"null\" - simply omit it for the default behavior. Must be a valid directory path if provided.")),
+		mcp.WithReadOnlyHintAnnotation(true),
 	)
 	return &tool
 }
@@ -257,6 +269,51 @@ func (m *McpServer) handleUndoEdit(ctx context.Context, req mcp.CallToolRequest)
 	return &mcp.CallToolResult{
 		Content: []mcp.Content{
 			mcp.NewTextContent("Edit undone successfully"),
+		},
+	}, nil
+}
+
+func (m *McpServer) handleGlob(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, ok := req.Params.Arguments.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid arguments")
+	}
+
+	pattern, ok := args["pattern"].(string)
+	if !ok {
+		return nil, fmt.Errorf("pattern parameter required")
+	}
+
+	path := ""
+	if p, ok := args["path"].(string); ok {
+		path = p
+	}
+
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	err := glob.Glob(pattern, path)
+
+	w.Close()
+	os.Stdout = old
+
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+	output := buf.String()
+
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				mcp.NewTextContent(fmt.Sprintf("Error: %v", err)),
+			},
+		}, nil
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.NewTextContent(output),
 		},
 	}, nil
 }

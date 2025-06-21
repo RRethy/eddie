@@ -56,6 +56,15 @@ func TestMcpServer_createUndoEditTool(t *testing.T) {
 	assert.Contains(t, tool.Description, "Undo the last edit")
 }
 
+func TestMcpServer_createGlobTool(t *testing.T) {
+	m := &McpServer{}
+	tool := m.createGlobTool()
+
+	assert.NotNil(t, tool)
+	assert.Equal(t, "glob", tool.Name)
+	assert.Contains(t, tool.Description, "Fast file pattern matching")
+}
+
 func TestMcpServer_handleView(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.txt")
@@ -362,6 +371,82 @@ func TestMcpServer_handleUndoEdit(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.NotNil(t, result)
+		})
+	}
+}
+
+func TestMcpServer_handleGlob(t *testing.T) {
+	tmpDir := t.TempDir()
+	
+	files := []string{"test1.txt", "test2.txt", "main.go"}
+	for _, f := range files {
+		err := os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0644)
+		require.NoError(t, err)
+	}
+
+	m := &McpServer{}
+
+	tests := []struct {
+		name    string
+		args    map[string]interface{}
+		wantErr bool
+	}{
+		{
+			name: "glob txt files",
+			args: map[string]interface{}{
+				"pattern": "*.txt",
+				"path":    tmpDir,
+			},
+			wantErr: false,
+		},
+		{
+			name: "glob without path",
+			args: map[string]interface{}{
+				"pattern": "*.go",
+			},
+			wantErr: false,
+		},
+		{
+			name: "recursive glob",
+			args: map[string]interface{}{
+				"pattern": "**/*.txt",
+				"path":    tmpDir,
+			},
+			wantErr: false,
+		},
+		{
+			name:    "missing pattern",
+			args:    map[string]interface{}{},
+			wantErr: true,
+		},
+		{
+			name: "invalid pattern",
+			args: map[string]interface{}{
+				"pattern": "[",
+				"path":    tmpDir,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := mcp.CallToolRequest{
+				Params: mcp.CallToolParams{
+					Arguments: tt.args,
+				},
+			}
+
+			result, err := m.handleGlob(context.Background(), req)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.NotNil(t, result)
+			assert.NotEmpty(t, result.Content)
 		})
 	}
 }

@@ -135,3 +135,61 @@ func BenchmarkMcpServer_handleInsert(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkMcpServer_handleGlob(b *testing.B) {
+	tmpDir := b.TempDir()
+	
+	for i := 0; i < 100; i++ {
+		err := os.WriteFile(filepath.Join(tmpDir, fmt.Sprintf("test%d.txt", i)), []byte("content"), 0644)
+		if err != nil {
+			b.Fatal(err)
+		}
+		err = os.WriteFile(filepath.Join(tmpDir, fmt.Sprintf("file%d.go", i)), []byte("content"), 0644)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+
+	subDir := filepath.Join(tmpDir, "subdir")
+	err := os.Mkdir(subDir, 0755)
+	if err != nil {
+		b.Fatal(err)
+	}
+	for i := 0; i < 50; i++ {
+		err := os.WriteFile(filepath.Join(subDir, fmt.Sprintf("nested%d.txt", i)), []byte("content"), 0644)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+
+	tests := []struct {
+		name    string
+		pattern string
+	}{
+		{"simple", "*.txt"},
+		{"recursive", "**/*.txt"},
+		{"all_recursive", "**"},
+	}
+
+	for _, tt := range tests {
+		b.Run(tt.name, func(b *testing.B) {
+			m := &McpServer{}
+			req := mcp.CallToolRequest{
+				Params: mcp.CallToolParams{
+					Arguments: map[string]interface{}{
+						"pattern": tt.pattern,
+						"path":    tmpDir,
+					},
+				},
+			}
+
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				_, err := m.handleGlob(context.Background(), req)
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+}
