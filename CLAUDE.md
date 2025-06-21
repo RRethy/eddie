@@ -335,12 +335,12 @@ func TestSplit(t *testing.T) {
 ## Development Workflow
 
 ### CLAUDE.md Guidelines
-- Update CLAUDE.md with any new patterns or practices
+- **IMPORTANT** Always update CLAUDE.md with any new patterns or practices
 
 ### Commit Strategy
 - **IMPORTANT** Commit small chunks of work frequently
-- **IMPORTANT** NEVER mention claude code in commit messages
-- Write succinct commit messages
+- **IMPORTANT** NEVER mention yourself code in commit messages
+- **IMPORTANT** Write short commit messages
 
 ### Testing Requirements
 - **Always test any code that is written**
