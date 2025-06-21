@@ -145,6 +145,11 @@ defer f.Close()
 // NEVER do this
 f, _ := os.Open(name) // FORBIDDEN
 
+// NEVER say "error" when wrapping errors
+if err != nil {
+    return fmt.Errorf("error: %w", err) // FORBIDDEN
+}
+
 // Add context when wrapping
 if err != nil {
     return fmt.Errorf("open %s: %w", name, err)
