@@ -11,7 +11,7 @@ import (
 
 type Inserter struct{}
 
-func (i *Inserter) Insert(path, insertLine, newStr string, showChanges bool) error {
+func (i *Inserter) Insert(path, insertLine, newStr string, showChanges, showResult bool) error {
 	info, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("stat %s: %w", path, err)
@@ -44,6 +44,10 @@ func (i *Inserter) Insert(path, insertLine, newStr string, showChanges bool) err
 	err = os.WriteFile(path, []byte(modified), info.Mode())
 	if err != nil {
 		return fmt.Errorf("write file %s: %w", path, err)
+	}
+
+	if showResult {
+		i.showResult(path, modified)
 	}
 
 	undoEditor := &undo_edit.UndoEditor{}
@@ -142,4 +146,9 @@ func (i *Inserter) showDiff(path, original, modified string, lineNum int) {
 		}
 	}
 	fmt.Println()
+}
+
+func (i *Inserter) showResult(path, content string) {
+	fmt.Printf("\nResult of %s:\n", path)
+	fmt.Println(content)
 }

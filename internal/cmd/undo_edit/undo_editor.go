@@ -26,7 +26,7 @@ type EditHistory struct {
 	Edits    []EditRecord `json:"edits"`
 }
 
-func (u *UndoEditor) UndoEdit(path string, showChanges bool) error {
+func (u *UndoEditor) UndoEdit(path string, showChanges, showResult bool) error {
 	info, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		return fmt.Errorf("file does not exist: %s", path)
@@ -68,12 +68,17 @@ func (u *UndoEditor) UndoEdit(path string, showChanges bool) error {
 		return fmt.Errorf("apply reverse edit: %w", err)
 	}
 
-	if showChanges {
+	if showChanges || showResult {
 		afterContent, err := os.ReadFile(path)
 		if err != nil {
 			return fmt.Errorf("read file after undo: %w", err)
 		}
-		u.showDiff(path, beforeContent, string(afterContent))
+		if showChanges {
+			u.showDiff(path, beforeContent, string(afterContent))
+		}
+		if showResult {
+			u.showResult(path, string(afterContent))
+		}
 	}
 
 	editHistory.Edits = editHistory.Edits[:lastEditIndex]
@@ -254,4 +259,9 @@ func (u *UndoEditor) showDiff(path, before, after string) {
 		}
 	}
 	fmt.Println()
+}
+
+func (u *UndoEditor) showResult(path, content string) {
+	fmt.Printf("\nResult of %s:\n", path)
+	fmt.Println(content)
 }

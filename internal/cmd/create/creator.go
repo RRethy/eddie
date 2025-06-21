@@ -9,7 +9,7 @@ import (
 
 type Creator struct{}
 
-func (c *Creator) Create(path, fileText string, showChanges bool) error {
+func (c *Creator) Create(path, fileText string, showChanges, showResult bool) error {
 	if _, err := os.Stat(path); err == nil {
 		return fmt.Errorf("file already exists: %s", path)
 	}
@@ -31,6 +31,10 @@ func (c *Creator) Create(path, fileText string, showChanges bool) error {
 		c.showContent(path, fileText)
 	}
 
+	if showResult {
+		c.showResult(path, fileText)
+	}
+
 	fmt.Printf("Created file: %s (%d bytes)\n", path, len(fileText))
 	return nil
 }
@@ -43,4 +47,9 @@ func (c *Creator) showContent(path, content string) {
 		fmt.Printf("+%s\n", line)
 	}
 	fmt.Println()
+}
+
+func (c *Creator) showResult(path, content string) {
+	fmt.Printf("\nResult of %s:\n", path)
+	fmt.Println(content)
 }

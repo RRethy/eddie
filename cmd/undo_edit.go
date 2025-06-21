@@ -18,18 +18,19 @@ This command restores a file to its previous state before the last edit operatio
 the original content.
 
 Usage:
-	undo_edit path [--show-diff]
+	undo_edit path [--show-diff] [--show-result]
 
 Parameters:
 	path: The path to the file to restore from backup.
 
 Flags:
 	--show-diff: Show the changes made during the undo operation.
+	--show-result: Show the new content after the undo operation.
 
 Example:
 	eddie undo_edit /path/to/file.txt
 	eddie undo_edit config.json --show-diff
-	eddie undo_edit script.sh`,
+	eddie undo_edit script.sh --show-result`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			fmt.Println("Error: path is required")
@@ -37,12 +38,14 @@ Example:
 		}
 		path := args[0]
 		showChanges, _ := cmd.Flags().GetBool("show-diff")
+		showResult, _ := cmd.Flags().GetBool("show-result")
 
-		checkErr(undo_edit.UndoEdit(path, showChanges))
+		checkErr(undo_edit.UndoEdit(path, showChanges, showResult))
 	},
 }
 
 func init() {
 	undoEditCmd.Flags().Bool("show-diff", false, "Show the changes made during the undo operation")
+	undoEditCmd.Flags().Bool("show-result", false, "Show the new content after the undo operation")
 	rootCmd.AddCommand(undoEditCmd)
 }

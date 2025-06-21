@@ -65,7 +65,7 @@ func TestReplacer_StrReplace(t *testing.T) {
 			require.NoError(t, os.WriteFile(testFile, []byte(tt.content), 0644))
 
 			r := &Replacer{}
-			err := r.StrReplace(testFile, tt.oldStr, tt.newStr, false)
+			err := r.StrReplace(testFile, tt.oldStr, tt.newStr, false, false)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -109,7 +109,7 @@ func TestReplacer_StrReplace_Errors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			path := tt.setup()
-			err := r.StrReplace(path, "old", "new", false)
+			err := r.StrReplace(path, "old", "new", false, false)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
 		})

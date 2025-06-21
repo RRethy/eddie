@@ -104,7 +104,7 @@ func TestCreator_Create(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Creator{}
 			path := tt.setup()
-			err := c.Create(path, tt.fileText, false)
+			err := c.Create(path, tt.fileText, false, false)
 
 			if tt.wantErr != "" {
 				require.Error(t, err)

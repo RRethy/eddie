@@ -198,7 +198,7 @@ func TestInserter_Insert(t *testing.T) {
 			require.NoError(t, os.WriteFile(testFile, []byte(tt.initialContent), 0644))
 
 			i := &Inserter{}
-			err := i.Insert(testFile, tt.insertLine, tt.newStr, false)
+			err := i.Insert(testFile, tt.insertLine, tt.newStr, false, false)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -248,7 +248,7 @@ func TestInserter_Insert_Errors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			path := tt.setup()
-			err := i.Insert(path, tt.line, tt.content, false)
+			err := i.Insert(path, tt.line, tt.content, false, false)
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
 		})
@@ -301,7 +301,7 @@ func TestInserter_Insert_EdgeCases(t *testing.T) {
 			testFile := filepath.Join(tmpDir, "edge_"+tt.name+".txt")
 			require.NoError(t, os.WriteFile(testFile, []byte(tt.initialContent), 0644))
 
-			err := i.Insert(testFile, tt.insertLine, tt.newStr, false)
+			err := i.Insert(testFile, tt.insertLine, tt.newStr, false, false)
 			require.NoError(t, err)
 
 			result, err := os.ReadFile(testFile)

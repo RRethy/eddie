@@ -10,7 +10,7 @@ import (
 
 type Replacer struct{}
 
-func (r *Replacer) StrReplace(path, oldStr, newStr string, showChanges bool) error {
+func (r *Replacer) StrReplace(path, oldStr, newStr string, showChanges, showResult bool) error {
 	info, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("stat %s: %w", path, err)
@@ -40,6 +40,10 @@ func (r *Replacer) StrReplace(path, oldStr, newStr string, showChanges bool) err
 	err = os.WriteFile(path, []byte(modified), info.Mode())
 	if err != nil {
 		return fmt.Errorf("write file %s: %w", path, err)
+	}
+
+	if showResult {
+		r.showResult(path, modified)
 	}
 
 	undoEditor := &undo_edit.UndoEditor{}
@@ -87,4 +91,9 @@ func (r *Replacer) showDiff(path, original, modified string) {
 		}
 	}
 	fmt.Println()
+}
+
+func (r *Replacer) showResult(path, content string) {
+	fmt.Printf("\nResult of %s:\n", path)
+	fmt.Println(content)
 }

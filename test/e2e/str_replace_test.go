@@ -87,6 +87,23 @@ func TestStrReplaceCommand(t *testing.T) {
 	}
 }
 
+func TestStrReplaceCommandWithShowResult(t *testing.T) {
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test_show_result.txt")
+	initialContent := "hello world\nthis is a test\nhello again"
+	require.NoError(t, os.WriteFile(testFile, []byte(initialContent), 0644))
+
+	stdout, stderr, err := runEddie(t, "str_replace", testFile, "hello", "hi", "--show-result")
+	require.NoError(t, err, "stderr: %s", stderr)
+
+	// Should contain the replacement message
+	assert.Contains(t, stdout, "Replaced 2 occurrence(s) of \"hello\" with \"hi\"")
+	
+	// Should contain the full file content after replacement
+	expectedContent := "hi world\nthis is a test\nhi again"
+	assert.Contains(t, stdout, expectedContent)
+}
+
 func TestStrReplaceCommandErrors(t *testing.T) {
 	tmpDir := t.TempDir()
 

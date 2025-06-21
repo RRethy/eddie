@@ -37,7 +37,7 @@ func BenchmarkReplacer_StrReplace(b *testing.B) {
 				}
 				b.StartTimer()
 
-				err = r.StrReplace(testFile, "hello", "hi", false)
+				err = r.StrReplace(testFile, "hello", "hi", false, false)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -78,7 +78,7 @@ func BenchmarkReplacer_StrReplacePatterns(b *testing.B) {
 				}
 				b.StartTimer()
 
-				err = r.StrReplace(testFile, pattern.oldStr, pattern.newStr, false)
+				err = r.StrReplace(testFile, pattern.oldStr, pattern.newStr, false, false)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -125,7 +125,7 @@ func BenchmarkReplacer_StrReplaceFrequency(b *testing.B) {
 				}
 				b.StartTimer()
 
-				err = r.StrReplace(testFile, "target", "replacement", false)
+				err = r.StrReplace(testFile, "target", "replacement", false, false)
 				if err != nil {
 					b.Fatal(err)
 				}
