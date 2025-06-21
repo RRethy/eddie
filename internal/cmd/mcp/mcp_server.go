@@ -1,0 +1,261 @@
+package mcp
+
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"io"
+	"os"
+	"strconv"
+
+	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/mark3labs/mcp-go/server"
+
+	"github.com/RRethy/eddie/internal/cmd/create"
+	"github.com/RRethy/eddie/internal/cmd/insert"
+	"github.com/RRethy/eddie/internal/cmd/str_replace"
+	"github.com/RRethy/eddie/internal/cmd/undo_edit"
+	"github.com/RRethy/eddie/internal/cmd/view"
+)
+
+type McpServer struct{}
+
+func (m *McpServer) Mcp() error {
+	s := server.NewMCPServer(
+		"Eddie MCP Server",
+		"1.0.0",
+		server.WithToolCapabilities(false),
+	)
+
+	s.AddTool(*m.createViewTool(), m.handleView)
+	s.AddTool(*m.createStrReplaceTool(), m.handleStrReplace)
+	s.AddTool(*m.createCreateTool(), m.handleCreate)
+	s.AddTool(*m.createInsertTool(), m.handleInsert)
+	s.AddTool(*m.createUndoEditTool(), m.handleUndoEdit)
+
+	return server.ServeStdio(s)
+}
+
+func (m *McpServer) createViewTool() *mcp.Tool {
+	tool := mcp.NewTool("view",
+		mcp.WithDescription("View file contents or list directory contents"),
+		mcp.WithString("path", mcp.Required()),
+		mcp.WithString("range"),
+	)
+	return &tool
+}
+
+func (m *McpServer) createStrReplaceTool() *mcp.Tool {
+	tool := mcp.NewTool("str_replace",
+		mcp.WithDescription("Replace all occurrences of a string in a file"),
+		mcp.WithString("path", mcp.Required()),
+		mcp.WithString("old_str", mcp.Required()),
+		mcp.WithString("new_str", mcp.Required()),
+	)
+	return &tool
+}
+
+func (m *McpServer) createCreateTool() *mcp.Tool {
+	tool := mcp.NewTool("create",
+		mcp.WithDescription("Create a new file with specified content"),
+		mcp.WithString("path", mcp.Required()),
+		mcp.WithString("content", mcp.Required()),
+	)
+	return &tool
+}
+
+func (m *McpServer) createInsertTool() *mcp.Tool {
+	tool := mcp.NewTool("insert",
+		mcp.WithDescription("Insert a new line at specified line number"),
+		mcp.WithString("path", mcp.Required()),
+		mcp.WithNumber("line", mcp.Required()),
+		mcp.WithString("content", mcp.Required()),
+	)
+	return &tool
+}
+
+func (m *McpServer) createUndoEditTool() *mcp.Tool {
+	tool := mcp.NewTool("undo_edit",
+		mcp.WithDescription("Undo the last edit operation on a file"),
+		mcp.WithString("path", mcp.Required()),
+	)
+	return &tool
+}
+
+func (m *McpServer) handleView(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, ok := req.Params.Arguments.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid arguments")
+	}
+
+	path, ok := args["path"].(string)
+	if !ok {
+		return nil, fmt.Errorf("path parameter required")
+	}
+
+	rangeStr := ""
+	if r, ok := args["range"].(string); ok {
+		rangeStr = r
+	}
+
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	err := view.View(path, rangeStr)
+
+	w.Close()
+	os.Stdout = old
+
+	var buf bytes.Buffer
+	io.Copy(&buf, r)
+	output := buf.String()
+
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				mcp.NewTextContent(fmt.Sprintf("Error: %v", err)),
+			},
+		}, nil
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.NewTextContent(output),
+		},
+	}, nil
+}
+
+func (m *McpServer) handleStrReplace(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, ok := req.Params.Arguments.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid arguments")
+	}
+
+	path, ok := args["path"].(string)
+	if !ok {
+		return nil, fmt.Errorf("path parameter required")
+	}
+	oldStr, ok := args["old_str"].(string)
+	if !ok {
+		return nil, fmt.Errorf("old_str parameter required")
+	}
+	newStr, ok := args["new_str"].(string)
+	if !ok {
+		return nil, fmt.Errorf("new_str parameter required")
+	}
+
+	err := str_replace.StrReplace(path, oldStr, newStr)
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				mcp.NewTextContent(fmt.Sprintf("Error: %v", err)),
+			},
+		}, nil
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.NewTextContent("String replacement completed successfully"),
+		},
+	}, nil
+}
+
+func (m *McpServer) handleCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, ok := req.Params.Arguments.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid arguments")
+	}
+
+	path, ok := args["path"].(string)
+	if !ok {
+		return nil, fmt.Errorf("path parameter required")
+	}
+	content, ok := args["content"].(string)
+	if !ok {
+		return nil, fmt.Errorf("content parameter required")
+	}
+
+	err := create.Create(path, content)
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				mcp.NewTextContent(fmt.Sprintf("Error: %v", err)),
+			},
+		}, nil
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.NewTextContent("File created successfully"),
+		},
+	}, nil
+}
+
+func (m *McpServer) handleInsert(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, ok := req.Params.Arguments.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid arguments")
+	}
+
+	path, ok := args["path"].(string)
+	if !ok {
+		return nil, fmt.Errorf("path parameter required")
+	}
+	lineFloat, ok := args["line"].(float64)
+	if !ok {
+		return nil, fmt.Errorf("line parameter required")
+	}
+	line := strconv.Itoa(int(lineFloat))
+	content, ok := args["content"].(string)
+	if !ok {
+		return nil, fmt.Errorf("content parameter required")
+	}
+
+	err := insert.Insert(path, line, content)
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				mcp.NewTextContent(fmt.Sprintf("Error: %v", err)),
+			},
+		}, nil
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.NewTextContent("Line inserted successfully"),
+		},
+	}, nil
+}
+
+func (m *McpServer) handleUndoEdit(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, ok := req.Params.Arguments.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid arguments")
+	}
+
+	path, ok := args["path"].(string)
+	if !ok {
+		return nil, fmt.Errorf("path parameter required")
+	}
+
+	err := undo_edit.UndoEdit(path)
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				mcp.NewTextContent(fmt.Sprintf("Error: %v", err)),
+			},
+		}, nil
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.NewTextContent("Edit undone successfully"),
+		},
+	}, nil
+}

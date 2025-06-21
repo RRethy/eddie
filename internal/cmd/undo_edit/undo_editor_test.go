@@ -44,15 +44,15 @@ func TestUndoEditor_RecordEdit(t *testing.T) {
 			err := u.RecordEdit(testFile, tt.editType, tt.oldContent, tt.newContent, tt.position)
 			require.NoError(t, err)
 
-				editPath, err := u.getEditFilePath(testFile)
+			editPath, err := u.getEditFilePath(testFile)
 			require.NoError(t, err)
 
-				history, err := u.readEditHistory(editPath)
+			history, err := u.readEditHistory(editPath)
 			require.NoError(t, err)
-			
+
 			assert.Equal(t, testFile, history.FilePath)
 			assert.Len(t, history.Edits, 1)
-			
+
 			edit := history.Edits[0]
 			assert.Equal(t, tt.editType, edit.EditType)
 			assert.Equal(t, tt.oldContent, edit.OldContent)
@@ -92,12 +92,12 @@ func TestUndoEditor_RecordEdit_Multiple(t *testing.T) {
 
 	history, err := u.readEditHistory(editPath)
 	require.NoError(t, err)
-	
+
 	assert.Len(t, history.Edits, 2)
 	assert.Equal(t, "str_replace", history.Edits[0].EditType)
 	assert.Equal(t, "original", history.Edits[0].OldContent)
 	assert.Equal(t, "first", history.Edits[0].NewContent)
-	
+
 	assert.Equal(t, "str_replace", history.Edits[1].EditType)
 	assert.Equal(t, "content", history.Edits[1].OldContent)
 	assert.Equal(t, "text", history.Edits[1].NewContent)
@@ -195,7 +195,7 @@ func TestUndoEditor_UndoEdit_Multiple(t *testing.T) {
 	os.Setenv("XDG_CACHE_HOME", tmpDir)
 
 	testFile := filepath.Join(tmpDir, "test.txt")
-	
+
 	content1 := "version 1\n"
 	require.NoError(t, os.WriteFile(testFile, []byte(content1), 0644))
 
@@ -203,7 +203,7 @@ func TestUndoEditor_UndoEdit_Multiple(t *testing.T) {
 	require.NoError(t, os.WriteFile(testFile, []byte(content2), 0644))
 	err := u.RecordEdit(testFile, "str_replace", "1", "2", -1)
 	require.NoError(t, err)
-	
+
 	content3 := "version 3\n"
 	require.NoError(t, os.WriteFile(testFile, []byte(content3), 0644))
 	err = u.RecordEdit(testFile, "str_replace", "2", "3", -1)

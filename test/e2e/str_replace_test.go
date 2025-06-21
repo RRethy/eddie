@@ -122,7 +122,7 @@ func TestStrReplaceCommandErrors(t *testing.T) {
 			stdout, stderr, err := runEddie(t, tt.args...)
 
 			if tt.name == "missing arguments" || tt.name == "missing new_str" {
-					assert.Contains(t, stdout, tt.wantErr)
+				assert.Contains(t, stdout, tt.wantErr)
 				return
 			}
 

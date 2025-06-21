@@ -50,7 +50,7 @@ func (u *UndoEditor) UndoEdit(path string) error {
 	editRecord := editHistory.Edits[lastEditIndex]
 
 	if !info.ModTime().Equal(editRecord.FileModTime) {
-		return fmt.Errorf("file has been modified since last tracked edit (expected: %v, actual: %v)", 
+		return fmt.Errorf("file has been modified since last tracked edit (expected: %v, actual: %v)",
 			editRecord.FileModTime.Format(time.RFC3339), info.ModTime().Format(time.RFC3339))
 	}
 
@@ -66,7 +66,7 @@ func (u *UndoEditor) UndoEdit(path string) error {
 		if err != nil {
 			return fmt.Errorf("stat file after undo: %w", err)
 		}
-		
+
 		editHistory.Edits[len(editHistory.Edits)-1].FileModTime = newInfo.ModTime()
 	}
 
@@ -85,7 +85,6 @@ func (u *UndoEditor) UndoEdit(path string) error {
 	fmt.Printf("Undid %s edit in %s\n", editRecord.EditType, path)
 	return nil
 }
-
 
 func (u *UndoEditor) RecordEdit(path, editType, oldContent, newContent string, position int) error {
 	editPath, err := u.getEditFilePath(path)
@@ -157,7 +156,7 @@ func (u *UndoEditor) getEditFilePath(path string) (string, error) {
 
 	safeName := u.createSafeFilename(absPath)
 	editFileName := safeName + ".json"
-	
+
 	return filepath.Join(editDir, editFileName), nil
 }
 
@@ -166,12 +165,12 @@ func (u *UndoEditor) createSafeFilename(path string) string {
 	safe = strings.ReplaceAll(safe, ":", "_")
 	safe = strings.ReplaceAll(safe, " ", "_")
 	safe = strings.ReplaceAll(safe, ".", "_")
-	
+
 	if len(safe) > 200 {
 		hash := sha256.Sum256([]byte(path))
 		return fmt.Sprintf("file_%x", hash)[:50]
 	}
-	
+
 	return safe
 }
 

@@ -88,7 +88,7 @@ func BenchmarkUndoEditor_UndoEdit(b *testing.B) {
 			for n := 0; n < b.N; n++ {
 				b.StopTimer()
 				testFile := filepath.Join(tmpDir, fmt.Sprintf("bench_undo_%s_%d.txt", size.name, n))
-				
+
 				// Create original file
 				err := os.WriteFile(testFile, []byte(originalContent), 0644)
 				if err != nil {
@@ -149,7 +149,7 @@ func BenchmarkUndoEditor_MultipleEdits(b *testing.B) {
 				b.StopTimer()
 				testFile := filepath.Join(tmpDir, fmt.Sprintf("multi_edit_%s_%d.txt", ec.name, n))
 				content := "original content"
-				
+
 				err := os.WriteFile(testFile, []byte(content), 0644)
 				if err != nil {
 					b.Fatal(err)
@@ -162,15 +162,15 @@ func BenchmarkUndoEditor_MultipleEdits(b *testing.B) {
 					if err != nil {
 						b.Fatal(err)
 					}
-					
+
 					err = u.RecordEdit(testFile, "str_replace", "content", fmt.Sprintf("content_%d", i), -1)
 					if err != nil {
 						b.Fatal(err)
 					}
 				}
-				
+
 				b.StartTimer()
-				
+
 				// Undo one edit
 				err = u.UndoEdit(testFile)
 				if err != nil {
@@ -231,10 +231,10 @@ func BenchmarkFileOperations_UndoEdit(b *testing.B) {
 
 func BenchmarkStringOperations_UndoEdit(b *testing.B) {
 	// Test string operations used in edit file management
-	
+
 	b.Run("strings_ReplaceAll", func(b *testing.B) {
 		content := strings.Repeat("hello world test content\n", 1000)
-		
+
 		b.ResetTimer()
 		for n := 0; n < b.N; n++ {
 			_ = strings.ReplaceAll(content, "hello", "hi")
@@ -249,7 +249,7 @@ func BenchmarkStringOperations_UndoEdit(b *testing.B) {
 			"C:\\Users\\user\\Documents\\file with spaces.txt",
 			"/tmp/test.txt",
 		}
-		
+
 		b.ResetTimer()
 		for n := 0; n < b.N; n++ {
 			for _, path := range paths {
@@ -260,7 +260,7 @@ func BenchmarkStringOperations_UndoEdit(b *testing.B) {
 
 	b.Run("filepath_operations", func(b *testing.B) {
 		path := "/path/to/test.txt"
-		
+
 		for n := 0; n < b.N; n++ {
 			_ = filepath.Dir(path)
 			_ = filepath.Base(path)
