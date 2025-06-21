@@ -41,6 +41,8 @@ go mod tidy
 
 - `main.go` - Entry point that calls `cmd.Execute()`
 - `cmd/root.go` - Root Cobra command definition with basic CLI setup
+- `cmd/view.go` - View command definition for file/directory inspection
+- `internal/cmd/view/` - Business logic for the view command
 - `go.mod` - Go module file defining dependencies (Cobra CLI framework)
 
 ## Architecture
@@ -50,6 +52,27 @@ The application follows the standard Cobra CLI pattern:
 - `cmd/` package contains command definitions, only parses flags and arguments and calls internal logic
 - `internal/` package contains business logic
 - `internal/cmd/` contains business logic for specific commands
+
+## Current Commands
+
+### view
+Examine the contents of a file or list the contents of a directory. It can read the entire file or a specific range of lines.
+
+**Usage:**
+```bash
+eddie view path [view_range]
+```
+
+**Parameters:**
+- `path`: The path to the file or directory to view
+- `[view_range]`: (Optional) Range of lines to view in format "start,end". If "end" is -1, reads to end of file. Ignored for directories.
+
+**Examples:**
+```bash
+eddie view /path/to/file.txt
+eddie view /path/to/directory  
+eddie view /path/to/file.txt 10,20
+```
 
 # Development Guidelines
 
@@ -137,34 +160,38 @@ if err != nil {
 ### Rob Pike Testing Approach
 **"Test what matters, not what's easy"**
 
+**MANDATORY: Always use testify for assertions and test structure**
+
 ```go
-// Table-driven tests - Pike's preferred pattern
+// Table-driven tests with testify - Required pattern
 func TestSplit(t *testing.T) {
     tests := []struct {
+        name  string
         input string
         sep   string
         want  []string
     }{
-        {"a,b,c", ",", []string{"a", "b", "c"}},
-        {"", ",", []string{""}},
-        {"a", ",", []string{"a"}},
+        {"basic split", "a,b,c", ",", []string{"a", "b", "c"}},
+        {"empty string", "", ",", []string{""}},
+        {"no separator", "a", ",", []string{"a"}},
     }
     
     for _, tt := range tests {
-        got := strings.Split(tt.input, tt.sep)
-        if !reflect.DeepEqual(got, tt.want) {
-            t.Errorf("Split(%q, %q) = %v, want %v", 
-                tt.input, tt.sep, got, tt.want)
-        }
+        t.Run(tt.name, func(t *testing.T) {
+            got := strings.Split(tt.input, tt.sep)
+            assert.Equal(t, tt.want, got)
+        })
     }
 }
 ```
 
 **Mandatory:**
+- Always use testify/assert for assertions
+- Use testify/require for assertions that should stop test execution
 - Test the exported interface, not internals
-- Table-driven tests for multiple cases
+- Table-driven tests with t.Run() for multiple cases
 - Clear test names describing what's being tested
-- No mocking unless absolutely necessary
+- Use testify/mock for mocking when necessary
 
 ## Development Workflow
 
