@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go build:*)",
+      "Bash(./eddie view:*)",
+      "Bash(go test:*)"
+    ],
+    "deny": []
+  }
+}
