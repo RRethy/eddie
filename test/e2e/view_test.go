@@ -14,17 +14,17 @@ func TestViewCommand(t *testing.T) {
 
 	testFile := filepath.Join(tmpDir, "test.txt")
 	content := "line1\nline2\nline3\nline4\nline5\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o644))
 
 	testSubDir := filepath.Join(tmpDir, "subdir")
-	require.NoError(t, os.Mkdir(testSubDir, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(testSubDir, "file1.txt"), []byte("content"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(testSubDir, "file2.txt"), []byte("content"), 0644))
+	require.NoError(t, os.Mkdir(testSubDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(testSubDir, "file1.txt"), []byte("content"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(testSubDir, "file2.txt"), []byte("content"), 0o644))
 
 	tests := []struct {
 		name       string
-		args       []string
 		wantOutput string
+		args       []string
 		wantErr    bool
 	}{
 		{

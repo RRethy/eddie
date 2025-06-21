@@ -8,7 +8,6 @@ import (
 )
 
 func TestDisplay_ShowResult(t *testing.T) {
-
 	tests := []struct {
 		name     string
 		path     string
@@ -59,7 +58,6 @@ func TestDisplay_ShowResult(t *testing.T) {
 }
 
 func TestDisplay_ShowDiff(t *testing.T) {
-
 	tests := []struct {
 		name     string
 		path     string
@@ -114,10 +112,10 @@ func TestDisplay_ShowDiff(t *testing.T) {
 			},
 		},
 		{
-			name:     "no changes",
-			path:     "same.txt",
-			before:   "unchanged",
-			after:    "unchanged",
+			name:   "no changes",
+			path:   "same.txt",
+			before: "unchanged",
+			after:  "unchanged",
 			expected: []string{
 				"Changes in same.txt:",
 				"--- Before",
@@ -141,7 +139,6 @@ func TestDisplay_ShowDiff(t *testing.T) {
 }
 
 func TestDisplay_ShowNewFileContent(t *testing.T) {
-
 	tests := []struct {
 		name     string
 		path     string
@@ -197,14 +194,13 @@ func TestDisplay_ShowNewFileContent(t *testing.T) {
 }
 
 func TestDisplay_ShowInsertDiff(t *testing.T) {
-
 	tests := []struct {
 		name     string
 		path     string
 		original string
 		modified string
-		lineNum  int
 		expected []string
+		lineNum  int
 	}{
 		{
 			name:     "insert at beginning",

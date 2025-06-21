@@ -31,7 +31,7 @@ func BenchmarkReplacer_StrReplace(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				b.StopTimer()
 				testFile := filepath.Join(tmpDir, "bench_"+size.name+"_"+string(rune(i))+".txt")
-				err := os.WriteFile(testFile, []byte(content), 0644)
+				err := os.WriteFile(testFile, []byte(content), 0o644)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -72,7 +72,7 @@ func BenchmarkReplacer_StrReplacePatterns(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				b.StopTimer()
 				testFile := filepath.Join(tmpDir, "bench_pattern_"+pattern.name+"_"+string(rune(i))+".txt")
-				err := os.WriteFile(testFile, []byte(content), 0644)
+				err := os.WriteFile(testFile, []byte(content), 0o644)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -119,7 +119,7 @@ func BenchmarkReplacer_StrReplaceFrequency(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				b.StopTimer()
 				testFile := filepath.Join(tmpDir, "bench_freq_"+freq.name+"_"+string(rune(i))+".txt")
-				err := os.WriteFile(testFile, []byte(content), 0644)
+				err := os.WriteFile(testFile, []byte(content), 0o644)
 				if err != nil {
 					b.Fatal(err)
 				}

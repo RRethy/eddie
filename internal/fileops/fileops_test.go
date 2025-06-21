@@ -14,15 +14,15 @@ func TestFileOps_ValidateFileExists(t *testing.T) {
 	f := &FileOps{}
 
 	tests := []struct {
-		name    string
 		setup   func() string
+		name    string
 		wantErr bool
 	}{
 		{
 			name: "existing file",
 			setup: func() string {
 				path := filepath.Join(tmpDir, "exists.txt")
-				err := os.WriteFile(path, []byte("content"), 0644)
+				err := os.WriteFile(path, []byte("content"), 0o644)
 				require.NoError(t, err)
 				return path
 			},
@@ -32,7 +32,7 @@ func TestFileOps_ValidateFileExists(t *testing.T) {
 			name: "existing directory",
 			setup: func() string {
 				path := filepath.Join(tmpDir, "dir")
-				err := os.Mkdir(path, 0755)
+				err := os.Mkdir(path, 0o755)
 				require.NoError(t, err)
 				return path
 			},
@@ -51,7 +51,7 @@ func TestFileOps_ValidateFileExists(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			path := tt.setup()
 			info, err := f.ValidateFileExists(path)
-			
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Nil(t, info)
@@ -69,11 +69,11 @@ func TestFileOps_ValidateNotDir(t *testing.T) {
 	f := &FileOps{}
 
 	filePath := filepath.Join(tmpDir, "file.txt")
-	err := os.WriteFile(filePath, []byte("content"), 0644)
+	err := os.WriteFile(filePath, []byte("content"), 0o644)
 	require.NoError(t, err)
 
 	dirPath := filepath.Join(tmpDir, "dir")
-	err = os.Mkdir(dirPath, 0755)
+	err = os.Mkdir(dirPath, 0o755)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -102,7 +102,7 @@ func TestFileOps_ValidateNotDir(t *testing.T) {
 			require.NoError(t, err)
 
 			err = f.ValidateNotDir(tt.path, info, tt.operation)
-			
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), "cannot test operation on directory")
@@ -128,7 +128,7 @@ func TestFileOps_ReadFileContentForOperation(t *testing.T) {
 			name: "successful read",
 			setup: func() string {
 				path := filepath.Join(tmpDir, "success.txt")
-				err := os.WriteFile(path, []byte("test content"), 0644)
+				err := os.WriteFile(path, []byte("test content"), 0o644)
 				require.NoError(t, err)
 				return path
 			},
@@ -139,7 +139,7 @@ func TestFileOps_ReadFileContentForOperation(t *testing.T) {
 			name: "directory error",
 			setup: func() string {
 				path := filepath.Join(tmpDir, "dir")
-				err := os.Mkdir(path, 0755)
+				err := os.Mkdir(path, 0o755)
 				require.NoError(t, err)
 				return path
 			},
@@ -160,7 +160,7 @@ func TestFileOps_ReadFileContentForOperation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			path := tt.setup()
 			content, info, err := f.ReadFileContentForOperation(path, tt.operation)
-			
+
 			if tt.wantErr != "" {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.wantErr)
@@ -190,14 +190,14 @@ func TestFileOps_WriteFileContent(t *testing.T) {
 			name:    "write to valid path",
 			path:    filepath.Join(tmpDir, "write.txt"),
 			content: "test content",
-			mode:    0644,
+			mode:    0o644,
 			wantErr: false,
 		},
 		{
 			name:    "write to invalid path",
 			path:    "/invalid/path/file.txt",
 			content: "content",
-			mode:    0644,
+			mode:    0o644,
 			wantErr: true,
 		},
 	}
@@ -205,17 +205,17 @@ func TestFileOps_WriteFileContent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := f.WriteFileContent(tt.path, tt.content, tt.mode)
-			
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), "write file")
 			} else {
 				assert.NoError(t, err)
-				
+
 				content, err := os.ReadFile(tt.path)
 				require.NoError(t, err)
 				assert.Equal(t, tt.content, string(content))
-				
+
 				info, err := os.Stat(tt.path)
 				require.NoError(t, err)
 				assert.Equal(t, tt.mode, info.Mode().Perm())
@@ -252,7 +252,7 @@ func TestFileOps_CreateFile(t *testing.T) {
 			name: "file already exists",
 			setup: func() string {
 				path := filepath.Join(tmpDir, "exists.txt")
-				err := os.WriteFile(path, []byte("old"), 0644)
+				err := os.WriteFile(path, []byte("old"), 0o644)
 				require.NoError(t, err)
 				return path
 			},
@@ -265,20 +265,20 @@ func TestFileOps_CreateFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			path := tt.setup()
 			err := f.CreateFile(path, tt.content)
-			
+
 			if tt.wantErr != "" {
 				assert.Error(t, err)
 				assert.Contains(t, err.Error(), tt.wantErr)
 			} else {
 				assert.NoError(t, err)
-				
+
 				content, err := os.ReadFile(path)
 				require.NoError(t, err)
 				assert.Equal(t, tt.content, string(content))
-				
+
 				info, err := os.Stat(path)
 				require.NoError(t, err)
-				assert.Equal(t, os.FileMode(0644), info.Mode().Perm())
+				assert.Equal(t, os.FileMode(0o644), info.Mode().Perm())
 			}
 		})
 	}

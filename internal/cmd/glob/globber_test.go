@@ -10,12 +10,12 @@ import (
 
 func TestGlobber_Glob(t *testing.T) {
 	tests := []struct {
+		setup    func(t *testing.T) string
+		validate func(t *testing.T, output string)
 		name     string
 		pattern  string
 		path     string
-		setup    func(t *testing.T) string
 		wantErr  bool
-		validate func(t *testing.T, output string)
 	}{
 		{
 			name:    "empty pattern",

@@ -9,8 +9,8 @@ import (
 func TestCLIBasics(t *testing.T) {
 	tests := []struct {
 		name       string
-		args       []string
 		wantOutput string
+		args       []string
 		wantErr    bool
 	}{
 		{

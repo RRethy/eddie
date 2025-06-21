@@ -1,40 +1,161 @@
 run:
   timeout: 5m
+  tests: true
   modules-download-mode: readonly
-  skip-dirs:
-    - vendor
-  skip-files:
-    - ".*\\.pb\\.go$"
+  go: "1.24"
+
+linters:
+  enable:
+    # Default linters
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    
+    # Additional quality linters
+    - gosec
+    - gocritic
+    - gofumpt
+    - goimports
+    - misspell
+    - unconvert
+    - unparam
+    - goconst
+    - gocyclo
+    - prealloc
+    - whitespace
+    - copyloopvar
+    - bodyclose
+    - rowserrcheck
+    - sqlclosecheck
+    - asciicheck
+    - durationcheck
+    - errorlint
+    - makezero
+    - usetesting
+    - wastedassign
+    - gci
+    
+  disable:
+    - depguard     # We don't need import restrictions
+    - funlen       # Function length handled by gocyclo
+    - gocognit     # Overlaps with gocyclo
+    - godot        # Comment punctuation too strict
+    - godox        # Allow TODO/FIXME comments
+    - lll          # Line length handled by gofumpt
+    - nestif       # Overlaps with gocyclo
+    - nlreturn     # Too opinionated
+    - paralleltest # Not all tests need parallel
+    - revive       # Overlaps with other linters
+    - stylecheck   # Too opinionated
+    - testpackage  # Same package tests are fine
+    - varnamelen   # Variable name length too restrictive
+    - wrapcheck    # Error wrapping rules too strict
+    - nilerr       # Design choice to ignore certain errors in some cases
 
 linters-settings:
+  govet:
+    enable-all: true
+
+  gocyclo:
+    min-complexity: 20
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - performance
+      - style
+    disabled-checks:
+      - hugeParam
+      - unnamedResult
+      - commentedOutCode
+      - ifElseChain  # Sometimes if-else is clearer than switch
+
+  gosec:
+    excludes:
+      - G204  # Subprocess with variable (needed for CLI)
+      - G304  # File path as input (CLI needs file access)
+      - G301  # Directory permissions (test files)
+      - G306  # File permissions (test files)
+      - G104  # Errors unhandled (acceptable in tests)
+
+  gofumpt:
+    extra-rules: true
+
+  goimports:
+    local-prefixes: github.com/RRethy/eddie
+
   gci:
     sections:
       - standard
       - default
       - prefix(github.com/RRethy/eddie)
-  gofumpt:
-    lang-version: "1.23"
-  govet:
-    enable-all: true
-    disable:
-      - shadow
+
+  misspell:
+    locale: US
+
+  prealloc:
+    simple: true
+    range-loops: true
+    for-loops: true
+
+  whitespace:
+    multi-if: false
+    multi-func: false
+
   staticcheck:
     checks: ["all"]
 
-linters:
-  enable:
-    - gofumpt
-    - goimports
-    - govet
-    - staticcheck
-    - ineffassign
-    - misspell
-    - gocritic
-    - gci
-    - unconvert
-    - unparam
-    - unused
-    - errcheck
-    - gosimple
-  disable:
-    - gochecknoinits
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-use-default: false
+  exclude-dirs:
+    - vendor
+  exclude-files:
+    - ".*\\.pb\\.go$"
+  uniq-by-line: true
+  exclude-rules:
+    - path: "_test\\.go"
+      linters:
+        - gosec
+        - errcheck
+        - usetesting
+        - gocritic
+    - path: "test/"
+      linters:
+        - gosec
+        - errcheck
+        - usetesting
+        - gocritic
+        - goconst
+        - errorlint
+    - path: "internal/display/"
+      linters:
+        - errcheck  # Display functions don't need to check fmt errors
+    - source: "defer.*\\.Close\\(\\)"
+      linters:
+        - errcheck  # Defer close calls are acceptable to ignore
+    - source: "w\\.Close\\(\\)"
+      linters:
+        - errcheck  # Pipe writer close calls in MCP server
+    - linters:
+        - govet
+      text: "shadow"
+    - source: "func \\(.*\\) UndoEdit"
+      linters:
+        - gocyclo
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  sort-results: true
+
+severity:
+  default-severity: error
+  case-sensitive: false

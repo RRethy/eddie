@@ -24,12 +24,12 @@ func NewUndoEditor(w io.Writer) *UndoEditor {
 }
 
 type EditRecord struct {
-	EditType    string    `json:"edit_type"`     // "str_replace" or "insert"
-	OldContent  string    `json:"old_content"`   // For str_replace: old string, for insert: ""
-	NewContent  string    `json:"new_content"`   // For str_replace: new string, for insert: inserted line
-	Position    int       `json:"position"`      // For insert: line number, for str_replace: -1
-	Timestamp   time.Time `json:"timestamp"`     // When edit was made
-	FileModTime time.Time `json:"file_mod_time"` // File modification time after edit
+	Timestamp   time.Time `json:"timestamp"`
+	FileModTime time.Time `json:"file_mod_time"`
+	EditType    string    `json:"edit_type"`
+	OldContent  string    `json:"old_content"`
+	NewContent  string    `json:"new_content"`
+	Position    int       `json:"position"`
 }
 
 type EditHistory struct {
@@ -141,7 +141,7 @@ func (u *UndoEditor) RecordEdit(path, editType, oldContent, newContent string, p
 	}
 
 	editDir := filepath.Dir(editPath)
-	err = os.MkdirAll(editDir, 0755)
+	err = os.MkdirAll(editDir, 0o755)
 	if err != nil {
 		return fmt.Errorf("create edit directory %s: %w", editDir, err)
 	}
@@ -243,11 +243,10 @@ func (u *UndoEditor) writeEditHistory(editPath string, history *EditHistory) err
 		return fmt.Errorf("marshal JSON: %w", err)
 	}
 
-	err = os.WriteFile(editPath, data, 0644)
+	err = os.WriteFile(editPath, data, 0o644)
 	if err != nil {
 		return fmt.Errorf("write file: %w", err)
 	}
 
 	return nil
 }
-

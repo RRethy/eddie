@@ -23,7 +23,7 @@ func BenchmarkLister_Ls(b *testing.B) {
 
 			for i := 0; i < size.files; i++ {
 				fileName := filepath.Join(testDir, "file"+strconv.Itoa(i)+".txt")
-				err := os.WriteFile(fileName, []byte("content"), 0644)
+				err := os.WriteFile(fileName, []byte("content"), 0o644)
 				if err != nil {
 					b.Fatal(err)
 				}

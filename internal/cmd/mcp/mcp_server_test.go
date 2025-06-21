@@ -70,14 +70,14 @@ func TestMcpServer_handleView(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.txt")
 	content := "line1\nline2\nline3"
 
-	err := os.WriteFile(testFile, []byte(content), 0644)
+	err := os.WriteFile(testFile, []byte(content), 0o644)
 	require.NoError(t, err)
 
 	m := &McpServer{}
 
 	tests := []struct {
-		name    string
 		args    map[string]interface{}
+		name    string
 		wantErr bool
 	}{
 		{
@@ -137,8 +137,8 @@ func TestMcpServer_handleCreate(t *testing.T) {
 	m := &McpServer{}
 
 	tests := []struct {
-		name    string
 		args    map[string]interface{}
+		name    string
 		wantErr bool
 	}{
 		{
@@ -193,14 +193,14 @@ func TestMcpServer_handleStrReplace(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.txt")
 	content := "Hello World"
 
-	err := os.WriteFile(testFile, []byte(content), 0644)
+	err := os.WriteFile(testFile, []byte(content), 0o644)
 	require.NoError(t, err)
 
 	m := &McpServer{}
 
 	tests := []struct {
-		name    string
 		args    map[string]interface{}
+		name    string
 		wantErr bool
 	}{
 		{
@@ -265,14 +265,14 @@ func TestMcpServer_handleInsert(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.txt")
 	content := "line1\nline2\nline3"
 
-	err := os.WriteFile(testFile, []byte(content), 0644)
+	err := os.WriteFile(testFile, []byte(content), 0o644)
 	require.NoError(t, err)
 
 	m := &McpServer{}
 
 	tests := []struct {
-		name    string
 		args    map[string]interface{}
+		name    string
 		wantErr bool
 	}{
 		{
@@ -337,14 +337,14 @@ func TestMcpServer_handleUndoEdit(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.txt")
 	content := "original content"
 
-	err := os.WriteFile(testFile, []byte(content), 0644)
+	err := os.WriteFile(testFile, []byte(content), 0o644)
 	require.NoError(t, err)
 
 	m := &McpServer{}
 
 	tests := []struct {
-		name    string
 		args    map[string]interface{}
+		name    string
 		wantErr bool
 	}{
 		{
@@ -380,15 +380,15 @@ func TestMcpServer_handleGlob(t *testing.T) {
 
 	files := []string{"test1.txt", "test2.txt", "main.go"}
 	for _, f := range files {
-		err := os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0644)
+		err := os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0o644)
 		require.NoError(t, err)
 	}
 
 	m := &McpServer{}
 
 	tests := []struct {
-		name    string
 		args    map[string]interface{}
+		name    string
 		wantErr bool
 	}{
 		{

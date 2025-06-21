@@ -22,12 +22,12 @@ func TestGlobCommand(t *testing.T) {
 	}
 
 	for _, f := range files {
-		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0644))
+		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0o644))
 	}
 
 	subDir := filepath.Join(tmpDir, "subdir")
-	require.NoError(t, os.Mkdir(subDir, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(subDir, "nested.go"), []byte("content"), 0644))
+	require.NoError(t, os.Mkdir(subDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(subDir, "nested.go"), []byte("content"), 0o644))
 
 	tests := []struct {
 		name      string

@@ -97,7 +97,8 @@ func (i *Inserter) insertLine(content string, lineNum int, newStr string) (strin
 	if lineNum == 1 {
 		result = append([]string{newStr}, lines...)
 	} else if lineNum > len(lines) {
-		result = append(lines, newStr)
+		lines = append(lines, newStr)
+		result = lines
 	} else {
 		result = make([]string, 0, len(lines)+1)
 		result = append(result, lines[:lineNum-1]...)

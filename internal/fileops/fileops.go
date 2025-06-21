@@ -56,11 +56,11 @@ func (f *FileOps) CreateFile(path, content string) error {
 
 	dir := filepath.Dir(path)
 	if dir != "." && dir != "/" {
-		err := os.MkdirAll(dir, 0755)
+		err := os.MkdirAll(dir, 0o755)
 		if err != nil {
 			return fmt.Errorf("create directories %s: %w", dir, err)
 		}
 	}
 
-	return f.WriteFileContent(path, content, 0644)
+	return f.WriteFileContent(path, content, 0o644)
 }

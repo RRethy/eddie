@@ -15,9 +15,9 @@ func TestStrReplaceCommand(t *testing.T) {
 	tests := []struct {
 		name           string
 		initialContent string
-		args           []string
 		wantContent    string
 		wantOutput     string
+		args           []string
 		wantErr        bool
 	}{
 		{
@@ -65,7 +65,7 @@ func TestStrReplaceCommand(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			testFile := filepath.Join(tmpDir, "test_"+tt.name+".txt")
-			require.NoError(t, os.WriteFile(testFile, []byte(tt.initialContent), 0644))
+			require.NoError(t, os.WriteFile(testFile, []byte(tt.initialContent), 0o644))
 
 			args := []string{"str_replace", testFile}
 			args = append(args, tt.args...)
@@ -91,14 +91,14 @@ func TestStrReplaceCommandWithShowResult(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test_show_result.txt")
 	initialContent := "hello world\nthis is a test\nhello again"
-	require.NoError(t, os.WriteFile(testFile, []byte(initialContent), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte(initialContent), 0o644))
 
 	stdout, stderr, err := runEddie(t, "str_replace", testFile, "hello", "hi", "--show-result")
 	require.NoError(t, err, "stderr: %s", stderr)
 
 	// Should contain the replacement message
 	assert.Contains(t, stdout, "Replaced 2 occurrence(s) of \"hello\" with \"hi\"")
-	
+
 	// Should contain the full file content after replacement
 	expectedContent := "hi world\nthis is a test\nhi again"
 	assert.Contains(t, stdout, expectedContent)
@@ -109,8 +109,8 @@ func TestStrReplaceCommandErrors(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		args    []string
 		wantErr string
+		args    []string
 	}{
 		{
 			name:    "missing arguments",

@@ -131,7 +131,7 @@ func (m *McpServer) handleView(ctx context.Context, req mcp.CallToolRequest) (*m
 	os.Stdout = old
 
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 	output := buf.String()
 
 	if err != nil {
@@ -349,7 +349,7 @@ func (m *McpServer) handleGlob(ctx context.Context, req mcp.CallToolRequest) (*m
 	os.Stdout = old
 
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 	output := buf.String()
 
 	if err != nil {
@@ -398,7 +398,7 @@ func (m *McpServer) handleLs(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	os.Stdout = old
 
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, _ = io.Copy(&buf, r)
 	output := buf.String()
 
 	if err != nil {

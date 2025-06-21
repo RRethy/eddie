@@ -13,9 +13,9 @@ import (
 func TestLsCommand(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "file1.txt"), []byte("content"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "file2.go"), []byte("package main"), 0644))
-	require.NoError(t, os.Mkdir(filepath.Join(tmpDir, "subdir"), 0755))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "file1.txt"), []byte("content"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(tmpDir, "file2.go"), []byte("package main"), 0o644))
+	require.NoError(t, os.Mkdir(filepath.Join(tmpDir, "subdir"), 0o755))
 
 	tests := []struct {
 		name       string
@@ -77,7 +77,7 @@ func TestLsCommandOutput(t *testing.T) {
 
 	files := []string{"alpha.txt", "beta.go", "gamma.md"}
 	for _, file := range files {
-		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, file), []byte("content"), 0644))
+		require.NoError(t, os.WriteFile(filepath.Join(tmpDir, file), []byte("content"), 0o644))
 	}
 
 	stdout, stderr, err := runEddie(t, "ls", tmpDir)

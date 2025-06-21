@@ -30,7 +30,7 @@ func BenchmarkInserter_Insert(b *testing.B) {
 			for n := 0; n < b.N; n++ {
 				b.StopTimer()
 				testFile := filepath.Join(tmpDir, "bench_"+size.name+"_"+string(rune(n))+".txt")
-				err := os.WriteFile(testFile, []byte(content), 0644)
+				err := os.WriteFile(testFile, []byte(content), 0o644)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -69,7 +69,7 @@ func BenchmarkInserter_InsertPosition(b *testing.B) {
 			for n := 0; n < b.N; n++ {
 				b.StopTimer()
 				testFile := filepath.Join(tmpDir, "bench_pos_"+pos.name+"_"+string(rune(n))+".txt")
-				err := os.WriteFile(testFile, []byte(content), 0644)
+				err := os.WriteFile(testFile, []byte(content), 0o644)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -107,7 +107,7 @@ func BenchmarkInserter_InsertContentLength(b *testing.B) {
 			for n := 0; n < b.N; n++ {
 				b.StopTimer()
 				testFile := filepath.Join(tmpDir, "bench_content_"+cl.name+"_"+string(rune(n))+".txt")
-				err := os.WriteFile(testFile, []byte(content), 0644)
+				err := os.WriteFile(testFile, []byte(content), 0o644)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -205,7 +205,8 @@ func BenchmarkStringOperations_Insert(b *testing.B) {
 
 	b.Run("slice_append_end", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
-			result := append(lines, newLine)
+			lines = append(lines, newLine)
+			result := lines
 			_ = result
 		}
 	})

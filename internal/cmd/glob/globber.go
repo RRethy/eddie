@@ -12,8 +12,8 @@ import (
 type Globber struct{}
 
 type fileInfo struct {
-	path    string
 	modTime time.Time
+	path    string
 }
 
 func (g *Globber) Glob(pattern, path string) error {

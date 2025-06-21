@@ -40,7 +40,7 @@ func BenchmarkUndoEditor_RecordEdit(b *testing.B) {
 			for n := 0; n < b.N; n++ {
 				b.StopTimer()
 				testFile := filepath.Join(tmpDir, fmt.Sprintf("bench_%s_%d.txt", size.name, n))
-				err := os.WriteFile(testFile, []byte(content), 0644)
+				err := os.WriteFile(testFile, []byte(content), 0o644)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -90,13 +90,13 @@ func BenchmarkUndoEditor_UndoEdit(b *testing.B) {
 				testFile := filepath.Join(tmpDir, fmt.Sprintf("bench_undo_%s_%d.txt", size.name, n))
 
 				// Create original file
-				err := os.WriteFile(testFile, []byte(originalContent), 0644)
+				err := os.WriteFile(testFile, []byte(originalContent), 0o644)
 				if err != nil {
 					b.Fatal(err)
 				}
 
 				// Modify file
-				err = os.WriteFile(testFile, []byte(modifiedContent), 0644)
+				err = os.WriteFile(testFile, []byte(modifiedContent), 0o644)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -150,7 +150,7 @@ func BenchmarkUndoEditor_MultipleEdits(b *testing.B) {
 				testFile := filepath.Join(tmpDir, fmt.Sprintf("multi_edit_%s_%d.txt", ec.name, n))
 				content := "original content"
 
-				err := os.WriteFile(testFile, []byte(content), 0644)
+				err := os.WriteFile(testFile, []byte(content), 0o644)
 				if err != nil {
 					b.Fatal(err)
 				}
@@ -158,7 +158,7 @@ func BenchmarkUndoEditor_MultipleEdits(b *testing.B) {
 				// Create multiple edits
 				for i := 0; i < ec.count; i++ {
 					newContent := fmt.Sprintf("content_%d", i)
-					err = os.WriteFile(testFile, []byte(newContent), 0644)
+					err = os.WriteFile(testFile, []byte(newContent), 0o644)
 					if err != nil {
 						b.Fatal(err)
 					}
@@ -187,7 +187,7 @@ func BenchmarkFileOperations_UndoEdit(b *testing.B) {
 
 	b.Run("os_ReadFile", func(b *testing.B) {
 		testFile := filepath.Join(tmpDir, "read_test.txt")
-		err := os.WriteFile(testFile, []byte(content), 0644)
+		err := os.WriteFile(testFile, []byte(content), 0o644)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -204,7 +204,7 @@ func BenchmarkFileOperations_UndoEdit(b *testing.B) {
 	b.Run("os_WriteFile", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
 			testFile := filepath.Join(tmpDir, fmt.Sprintf("write_test_%d.txt", n))
-			err := os.WriteFile(testFile, []byte(content), 0644)
+			err := os.WriteFile(testFile, []byte(content), 0o644)
 			if err != nil {
 				b.Fatal(err)
 			}
@@ -215,7 +215,7 @@ func BenchmarkFileOperations_UndoEdit(b *testing.B) {
 		for n := 0; n < b.N; n++ {
 			b.StopTimer()
 			testFile := filepath.Join(tmpDir, fmt.Sprintf("remove_test_%d.txt", n))
-			err := os.WriteFile(testFile, []byte(content), 0644)
+			err := os.WriteFile(testFile, []byte(content), 0o644)
 			if err != nil {
 				b.Fatal(err)
 			}

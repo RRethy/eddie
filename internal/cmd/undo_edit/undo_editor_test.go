@@ -30,17 +30,17 @@ func TestUndoEditor_RecordEdit(t *testing.T) {
 		editType    string
 		oldContent  string
 		newContent  string
-		position    int
 		fileContent string
+		position    int
 	}{
-		{"str_replace edit", "str_replace", "old", "new", -1, "some old content"},
-		{"insert edit", "insert", "", "new line", 2, "line1\nline2\n"},
+		{"str_replace edit", "str_replace", "old", "new", "some old content", -1},
+		{"insert edit", "insert", "", "new line", "line1\nline2\n", 2},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			testFile := filepath.Join(tmpDir, "test_"+tt.name+".txt")
-			require.NoError(t, os.WriteFile(testFile, []byte(tt.fileContent), 0644))
+			require.NoError(t, os.WriteFile(testFile, []byte(tt.fileContent), 0o644))
 
 			err := u.RecordEdit(testFile, tt.editType, tt.oldContent, tt.newContent, tt.position)
 			require.NoError(t, err)
@@ -63,25 +63,21 @@ func TestUndoEditor_RecordEdit(t *testing.T) {
 	}
 }
 
-
-
-
-
 func TestUndoEditor_UndoEdit_MultipleCount_Basic(t *testing.T) {
 	tmpDir := t.TempDir()
 	var buf bytes.Buffer
 	u := NewUndoEditor(&buf)
 
 	testFile := filepath.Join(tmpDir, "multi_count.txt")
-	err := os.WriteFile(testFile, []byte("original"), 0644)
+	err := os.WriteFile(testFile, []byte("original"), 0o644)
 	require.NoError(t, err)
 
 	// Test basic multiple count functionality without timing dependencies
 	t.Run("count validation", func(t *testing.T) {
 		tests := []struct {
-			name      string
-			count     int
-			wantErr   string
+			name    string
+			wantErr string
+			count   int
 		}{
 			{
 				name:    "zero count",
@@ -89,7 +85,7 @@ func TestUndoEditor_UndoEdit_MultipleCount_Basic(t *testing.T) {
 				wantErr: "count must be greater than 0",
 			},
 			{
-				name:    "negative count", 
+				name:    "negative count",
 				count:   -1,
 				wantErr: "count must be greater than 0",
 			},
@@ -122,12 +118,12 @@ func TestUndoEditor_RecordEdit_Multiple(t *testing.T) {
 	os.Setenv("XDG_CACHE_HOME", tmpDir)
 
 	testFile := filepath.Join(tmpDir, "test.txt")
-	require.NoError(t, os.WriteFile(testFile, []byte("original content"), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte("original content"), 0o644))
 
 	err := u.RecordEdit(testFile, "str_replace", "original", "first", -1)
 	require.NoError(t, err)
 
-	require.NoError(t, os.WriteFile(testFile, []byte("first content"), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte("first content"), 0o644))
 
 	err = u.RecordEdit(testFile, "str_replace", "content", "text", -1)
 	require.NoError(t, err)
@@ -164,10 +160,10 @@ func TestUndoEditor_UndoEdit_StrReplace(t *testing.T) {
 
 	testFile := filepath.Join(tmpDir, "test.txt")
 	originalContent := "hello world\nline2\nline3\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(originalContent), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte(originalContent), 0o644))
 
 	modifiedContent := "hi world\nline2\nline3\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(modifiedContent), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte(modifiedContent), 0o644))
 
 	err := u.RecordEdit(testFile, "str_replace", "hello", "hi", -1)
 	require.NoError(t, err)
@@ -205,10 +201,10 @@ func TestUndoEditor_UndoEdit_Insert(t *testing.T) {
 
 	testFile := filepath.Join(tmpDir, "test.txt")
 	originalContent := "line1\nline3\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(originalContent), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte(originalContent), 0o644))
 
 	modifiedContent := "line1\nline2\nline3\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(modifiedContent), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte(modifiedContent), 0o644))
 
 	err := u.RecordEdit(testFile, "insert", "", "line2", 2)
 	require.NoError(t, err)
@@ -242,15 +238,15 @@ func TestUndoEditor_UndoEdit_Multiple(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.txt")
 
 	content1 := "version 1\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(content1), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte(content1), 0o644))
 
 	content2 := "version 2\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(content2), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte(content2), 0o644))
 	err := u.RecordEdit(testFile, "str_replace", "1", "2", -1)
 	require.NoError(t, err)
 
 	content3 := "version 3\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(content3), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte(content3), 0o644))
 	err = u.RecordEdit(testFile, "str_replace", "2", "3", -1)
 	require.NoError(t, err)
 
@@ -290,18 +286,18 @@ func TestUndoEditor_UndoEdit_ModificationTimeValidation(t *testing.T) {
 
 	testFile := filepath.Join(tmpDir, "test.txt")
 	originalContent := "hello world\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(originalContent), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte(originalContent), 0o644))
 
 	// Modify file and record edit
 	modifiedContent := "hi world\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(modifiedContent), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte(modifiedContent), 0o644))
 	err := u.RecordEdit(testFile, "str_replace", "hello", "hi", -1)
 	require.NoError(t, err)
 
 	time.Sleep(100 * time.Millisecond)
 
 	externalContent := "external change\n"
-	require.NoError(t, os.WriteFile(testFile, []byte(externalContent), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte(externalContent), 0o644))
 
 	err = u.UndoEdit(testFile, false, false, 1)
 	require.Error(t, err)
@@ -338,7 +334,7 @@ func TestUndoEditor_UndoEdit_Errors(t *testing.T) {
 			name: "no edit history",
 			setup: func() string {
 				testFile := filepath.Join(tmpDir, "noedits.txt")
-				require.NoError(t, os.WriteFile(testFile, []byte("content"), 0644))
+				require.NoError(t, os.WriteFile(testFile, []byte("content"), 0o644))
 				return testFile
 			},
 			wantErr: "read edit history",
@@ -354,5 +350,3 @@ func TestUndoEditor_UndoEdit_Errors(t *testing.T) {
 		})
 	}
 }
-
-

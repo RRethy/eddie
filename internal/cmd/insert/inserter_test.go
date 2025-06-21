@@ -47,9 +47,9 @@ func TestInserter_insertLine(t *testing.T) {
 	tests := []struct {
 		name    string
 		content string
-		lineNum int
 		newStr  string
 		want    string
+		lineNum int
 		wantErr bool
 	}{
 		{
@@ -195,7 +195,7 @@ func TestInserter_Insert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			testFile := filepath.Join(tmpDir, "test_"+tt.name+".txt")
-			require.NoError(t, os.WriteFile(testFile, []byte(tt.initialContent), 0644))
+			require.NoError(t, os.WriteFile(testFile, []byte(tt.initialContent), 0o644))
 
 			i := &Inserter{}
 			err := i.Insert(testFile, tt.insertLine, tt.newStr, false, false)
@@ -299,7 +299,7 @@ func TestInserter_Insert_EdgeCases(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			testFile := filepath.Join(tmpDir, "edge_"+tt.name+".txt")
-			require.NoError(t, os.WriteFile(testFile, []byte(tt.initialContent), 0644))
+			require.NoError(t, os.WriteFile(testFile, []byte(tt.initialContent), 0o644))
 
 			err := i.Insert(testFile, tt.insertLine, tt.newStr, false, false)
 			require.NoError(t, err)

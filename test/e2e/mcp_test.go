@@ -16,29 +16,29 @@ import (
 )
 
 type MCPRequest struct {
-	Jsonrpc string      `json:"jsonrpc"`
-	ID      int         `json:"id"`
-	Method  string      `json:"method"`
 	Params  interface{} `json:"params,omitempty"`
+	Jsonrpc string      `json:"jsonrpc"`
+	Method  string      `json:"method"`
+	ID      int         `json:"id"`
 }
 
 type MCPResponse struct {
-	Jsonrpc string      `json:"jsonrpc"`
-	ID      int         `json:"id"`
 	Result  interface{} `json:"result,omitempty"`
 	Error   interface{} `json:"error,omitempty"`
+	Jsonrpc string      `json:"jsonrpc"`
+	ID      int         `json:"id"`
 }
 
 type InitializeParams struct {
-	ProtocolVersion string                 `json:"protocolVersion"`
 	Capabilities    map[string]interface{} `json:"capabilities"`
 	ClientInfo      map[string]string      `json:"clientInfo"`
+	ProtocolVersion string                 `json:"protocolVersion"`
 }
 
 type Tool struct {
+	InputSchema map[string]interface{} `json:"inputSchema"`
 	Name        string                 `json:"name"`
 	Description string                 `json:"description"`
-	InputSchema map[string]interface{} `json:"inputSchema"`
 }
 
 type ListToolsResult struct {
@@ -62,8 +62,8 @@ func TestMCPServerStartup(t *testing.T) {
 	require.NoError(t, err)
 	defer func() {
 		stdin.Close()
-		cmd.Process.Kill()
-		cmd.Wait()
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
 	}()
 
 	scanner := bufio.NewScanner(stdout)
@@ -116,8 +116,8 @@ func TestMCPListTools(t *testing.T) {
 	require.NoError(t, err)
 	defer func() {
 		stdin.Close()
-		cmd.Process.Kill()
-		cmd.Wait()
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
 	}()
 
 	scanner := bufio.NewScanner(stdout)
@@ -198,7 +198,7 @@ func TestMCPToolExecution(t *testing.T) {
 	testFile := filepath.Join(tmpDir, "test.txt")
 	content := "Hello World"
 
-	err := os.WriteFile(testFile, []byte(content), 0644)
+	err := os.WriteFile(testFile, []byte(content), 0o644)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -217,8 +217,8 @@ func TestMCPToolExecution(t *testing.T) {
 	require.NoError(t, err)
 	defer func() {
 		stdin.Close()
-		cmd.Process.Kill()
-		cmd.Wait()
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
 	}()
 
 	scanner := bufio.NewScanner(stdout)
@@ -296,7 +296,7 @@ func TestMCPGlobTool(t *testing.T) {
 
 	files := []string{"test1.txt", "test2.txt", "main.go"}
 	for _, f := range files {
-		err := os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0644)
+		err := os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0o644)
 		require.NoError(t, err)
 	}
 
@@ -316,8 +316,8 @@ func TestMCPGlobTool(t *testing.T) {
 	require.NoError(t, err)
 	defer func() {
 		stdin.Close()
-		cmd.Process.Kill()
-		cmd.Wait()
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
 	}()
 
 	scanner := bufio.NewScanner(stdout)
@@ -417,8 +417,8 @@ func TestMCPErrorHandling(t *testing.T) {
 	require.NoError(t, err)
 	defer func() {
 		stdin.Close()
-		cmd.Process.Kill()
-		cmd.Wait()
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
 	}()
 
 	scanner := bufio.NewScanner(stdout)

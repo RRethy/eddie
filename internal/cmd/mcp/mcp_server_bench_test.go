@@ -15,7 +15,7 @@ func BenchmarkMcpServer_handleView(b *testing.B) {
 	testFile := filepath.Join(tmpDir, "test.txt")
 	content := "line1\nline2\nline3\nline4\nline5\n"
 
-	err := os.WriteFile(testFile, []byte(content), 0644)
+	err := os.WriteFile(testFile, []byte(content), 0o644)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -83,7 +83,7 @@ func BenchmarkMcpServer_handleStrReplace(b *testing.B) {
 		testFile := filepath.Join(tmpDir, fmt.Sprintf("test_%d.txt", i))
 		content := "Hello World Hello World Hello World"
 
-		err := os.WriteFile(testFile, []byte(content), 0644)
+		err := os.WriteFile(testFile, []byte(content), 0o644)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -114,7 +114,7 @@ func BenchmarkMcpServer_handleInsert(b *testing.B) {
 		testFile := filepath.Join(tmpDir, fmt.Sprintf("test_%d.txt", i))
 		content := "line1\nline2\nline3\nline4\nline5\n"
 
-		err := os.WriteFile(testFile, []byte(content), 0644)
+		err := os.WriteFile(testFile, []byte(content), 0o644)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -140,23 +140,23 @@ func BenchmarkMcpServer_handleGlob(b *testing.B) {
 	tmpDir := b.TempDir()
 
 	for i := 0; i < 100; i++ {
-		err := os.WriteFile(filepath.Join(tmpDir, fmt.Sprintf("test%d.txt", i)), []byte("content"), 0644)
+		err := os.WriteFile(filepath.Join(tmpDir, fmt.Sprintf("test%d.txt", i)), []byte("content"), 0o644)
 		if err != nil {
 			b.Fatal(err)
 		}
-		err = os.WriteFile(filepath.Join(tmpDir, fmt.Sprintf("file%d.go", i)), []byte("content"), 0644)
+		err = os.WriteFile(filepath.Join(tmpDir, fmt.Sprintf("file%d.go", i)), []byte("content"), 0o644)
 		if err != nil {
 			b.Fatal(err)
 		}
 	}
 
 	subDir := filepath.Join(tmpDir, "subdir")
-	err := os.Mkdir(subDir, 0755)
+	err := os.Mkdir(subDir, 0o755)
 	if err != nil {
 		b.Fatal(err)
 	}
 	for i := 0; i < 50; i++ {
-		err := os.WriteFile(filepath.Join(subDir, fmt.Sprintf("nested%d.txt", i)), []byte("content"), 0644)
+		err := os.WriteFile(filepath.Join(subDir, fmt.Sprintf("nested%d.txt", i)), []byte("content"), 0o644)
 		if err != nil {
 			b.Fatal(err)
 		}

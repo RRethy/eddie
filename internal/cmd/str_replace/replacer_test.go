@@ -18,8 +18,8 @@ func TestReplacer_StrReplace(t *testing.T) {
 		oldStr       string
 		newStr       string
 		wantContent  string
-		wantErr      bool
 		expectOutput string
+		wantErr      bool
 	}{
 		{
 			name:         "basic replacement",
@@ -62,7 +62,7 @@ func TestReplacer_StrReplace(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			testFile := filepath.Join(tmpDir, "test_"+tt.name+".txt")
-			require.NoError(t, os.WriteFile(testFile, []byte(tt.content), 0644))
+			require.NoError(t, os.WriteFile(testFile, []byte(tt.content), 0o644))
 
 			r := &Replacer{}
 			err := r.StrReplace(testFile, tt.oldStr, tt.newStr, false, false)

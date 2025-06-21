@@ -25,7 +25,7 @@ func BenchmarkViewer_ViewFile(b *testing.B) {
 			// Create file with specified number of lines
 			content := strings.Repeat("this is a test line with some content\n", size.size)
 			testFile := filepath.Join(tmpDir, "bench_"+size.name+".txt")
-			err := os.WriteFile(testFile, []byte(content), 0644)
+			err := os.WriteFile(testFile, []byte(content), 0o644)
 			if err != nil {
 				b.Fatal(err)
 			}
@@ -49,7 +49,7 @@ func BenchmarkViewer_ViewFileWithRange(b *testing.B) {
 	// Create large test file
 	content := strings.Repeat("this is a test line with some content\n", 100000)
 	testFile := filepath.Join(tmpDir, "bench_range.txt")
-	err := os.WriteFile(testFile, []byte(content), 0644)
+	err := os.WriteFile(testFile, []byte(content), 0o644)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -95,7 +95,7 @@ func BenchmarkViewer_ViewDir(b *testing.B) {
 	for _, size := range sizes {
 		b.Run(size.name, func(b *testing.B) {
 			testDir := filepath.Join(tmpDir, "bench_"+size.name)
-			err := os.Mkdir(testDir, 0755)
+			err := os.Mkdir(testDir, 0o755)
 			if err != nil {
 				b.Fatal(err)
 			}
@@ -103,7 +103,7 @@ func BenchmarkViewer_ViewDir(b *testing.B) {
 			// Create files
 			for i := 0; i < size.files; i++ {
 				fileName := filepath.Join(testDir, "file"+string(rune(i))+".txt")
-				err := os.WriteFile(fileName, []byte("content"), 0644)
+				err := os.WriteFile(fileName, []byte("content"), 0o644)
 				if err != nil {
 					b.Fatal(err)
 				}
