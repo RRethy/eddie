@@ -105,7 +105,7 @@ Replace all occurrences of a string in a file with another string.
 
 **Usage:**
 ```bash
-eddie str_replace path old_str new_str [--show-changes]
+eddie str_replace path old_str new_str [--show-diff]
 ```
 
 **Parameters:**
@@ -114,12 +114,12 @@ eddie str_replace path old_str new_str [--show-changes]
 - `new_str`: The string to replace old_str with
 
 **Flags:**
-- `--show-changes`: Show the changes made to the file
+- `--show-diff`: Show the changes made to the file
 
 **Examples:**
 ```bash
 eddie str_replace /path/to/file.txt "old text" "new text"
-eddie str_replace config.json "localhost" "example.com" --show-changes
+eddie str_replace config.json "localhost" "example.com" --show-diff
 ```
 
 ### create
@@ -127,7 +127,7 @@ Create a new file with the specified content.
 
 **Usage:**
 ```bash
-eddie create path file_text [--show-changes]
+eddie create path file_text [--show-diff]
 ```
 
 **Parameters:**
@@ -135,12 +135,12 @@ eddie create path file_text [--show-changes]
 - `file_text`: The content to write to the new file
 
 **Flags:**
-- `--show-changes`: Show the content of the created file
+- `--show-diff`: Show the content of the created file
 
 **Examples:**
 ```bash
 eddie create /path/to/newfile.txt "Hello, World!"
-eddie create config.json '{"key": "value"}' --show-changes
+eddie create config.json '{"key": "value"}' --show-diff
 eddie create script.sh "#!/bin/bash\necho 'Hello'"
 ```
 
@@ -149,7 +149,7 @@ Insert a new line at the specified line number in a file.
 
 **Usage:**
 ```bash
-eddie insert path insert_line new_str [--show-changes]
+eddie insert path insert_line new_str [--show-diff]
 ```
 
 **Parameters:**
@@ -158,12 +158,12 @@ eddie insert path insert_line new_str [--show-changes]
 - `new_str`: The content of the new line to insert
 
 **Flags:**
-- `--show-changes`: Show the changes made to the file
+- `--show-diff`: Show the changes made to the file
 
 **Examples:**
 ```bash
 eddie insert /path/to/file.txt 5 "This is a new line"
-eddie insert config.json 10 "  \"newKey\": \"newValue\"," --show-changes
+eddie insert config.json 10 "  \"newKey\": \"newValue\"," --show-diff
 eddie insert script.sh 1 "#!/bin/bash"
 ```
 
@@ -172,19 +172,19 @@ Undo the last edit operation on a file by restoring from backup.
 
 **Usage:**
 ```bash
-eddie undo_edit path [--show-changes]
+eddie undo_edit path [--show-diff]
 ```
 
 **Parameters:**
 - `path`: The path to the file to restore from backup
 
 **Flags:**
-- `--show-changes`: Show the changes made during the undo operation
+- `--show-diff`: Show the changes made during the undo operation
 
 **Examples:**
 ```bash
 eddie undo_edit /path/to/file.txt
-eddie undo_edit config.json --show-changes
+eddie undo_edit config.json --show-diff
 eddie undo_edit script.sh
 ```
 
