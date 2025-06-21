@@ -13,171 +13,127 @@ func TestCreator_Create(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	tests := []struct {
-		name     string
-		path     string
-		fileText string
-		wantErr  bool
+		name           string
+		setup          func() string
+		fileText       string
+		wantErr        string
+		cleanupCurrent bool
 	}{
 		{
 			name:     "basic file creation",
-			path:     filepath.Join(tmpDir, "test.txt"),
+			setup:    func() string { return filepath.Join(tmpDir, "test.txt") },
 			fileText: "Hello, World!",
-			wantErr:  false,
+			wantErr:  "",
 		},
 		{
 			name:     "empty file",
-			path:     filepath.Join(tmpDir, "empty.txt"),
+			setup:    func() string { return filepath.Join(tmpDir, "empty.txt") },
 			fileText: "",
-			wantErr:  false,
+			wantErr:  "",
 		},
 		{
 			name:     "multiline content",
-			path:     filepath.Join(tmpDir, "multi.txt"),
+			setup:    func() string { return filepath.Join(tmpDir, "multi.txt") },
 			fileText: "line1\nline2\nline3",
-			wantErr:  false,
+			wantErr:  "",
 		},
 		{
 			name:     "json content",
-			path:     filepath.Join(tmpDir, "config.json"),
+			setup:    func() string { return filepath.Join(tmpDir, "config.json") },
 			fileText: `{"key": "value", "number": 42}`,
-			wantErr:  false,
+			wantErr:  "",
 		},
 		{
 			name:     "create with nested directories",
-			path:     filepath.Join(tmpDir, "nested", "deep", "file.txt"),
+			setup:    func() string { return filepath.Join(tmpDir, "nested", "deep", "file.txt") },
 			fileText: "nested content",
-			wantErr:  false,
+			wantErr:  "",
 		},
 		{
 			name:     "special characters",
-			path:     filepath.Join(tmpDir, "special.txt"),
+			setup:    func() string { return filepath.Join(tmpDir, "special.txt") },
 			fileText: "Special chars: äöü ñ 中文 🚀",
-			wantErr:  false,
+			wantErr:  "",
 		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Creator{}
-			err := c.Create(tt.path, tt.fileText)
-
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-
-			require.NoError(t, err)
-
-			content, err := os.ReadFile(tt.path)
-			require.NoError(t, err)
-			assert.Equal(t, tt.fileText, string(content))
-
-			info, err := os.Stat(tt.path)
-			require.NoError(t, err)
-			assert.Equal(t, os.FileMode(0644), info.Mode().Perm())
-		})
-	}
-}
-
-func TestCreator_Create_Errors(t *testing.T) {
-	tmpDir := t.TempDir()
-	c := &Creator{}
-
-	tests := []struct {
-		name    string
-		setup   func() string
-		content string
-		wantErr string
-	}{
 		{
 			name: "file already exists",
 			setup: func() string {
 				testFile := filepath.Join(tmpDir, "existing.txt")
-				require.NoError(t, os.WriteFile(testFile, []byte("existing"), 0644))
+				require.NoError(t, os.WriteFile(testFile, []byte("existing"), 0o644))
 				return testFile
 			},
-			content: "new content",
-			wantErr: "file already exists",
+			fileText: "new content",
+			wantErr:  "file already exists",
 		},
 		{
 			name: "invalid path characters",
 			setup: func() string {
 				return filepath.Join(tmpDir, "invalid\x00file.txt")
 			},
-			content: "content",
-			wantErr: "write file",
+			fileText: "content",
+			wantErr:  "write file",
 		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			path := tt.setup()
-			err := c.Create(path, tt.content)
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), tt.wantErr)
-		})
-	}
-}
-
-func TestCreator_Create_DirectoryCreation(t *testing.T) {
-	tmpDir := t.TempDir()
-	c := &Creator{}
-
-	deepPath := filepath.Join(tmpDir, "level1", "level2", "level3", "file.txt")
-	err := c.Create(deepPath, "deep content")
-	require.NoError(t, err)
-
-	assert.DirExists(t, filepath.Join(tmpDir, "level1"))
-	assert.DirExists(t, filepath.Join(tmpDir, "level1", "level2"))
-	assert.DirExists(t, filepath.Join(tmpDir, "level1", "level2", "level3"))
-
-	content, err := os.ReadFile(deepPath)
-	require.NoError(t, err)
-	assert.Equal(t, "deep content", string(content))
-
-	info, err := os.Stat(filepath.Join(tmpDir, "level1"))
-	require.NoError(t, err)
-	assert.Equal(t, os.FileMode(0755), info.Mode().Perm())
-}
-
-func TestCreator_Create_EdgeCases(t *testing.T) {
-	tmpDir := t.TempDir()
-	c := &Creator{}
-
-	tests := []struct {
-		name     string
-		path     string
-		fileText string
-	}{
+		{
+			name:     "nested directory creation",
+			setup:    func() string { return filepath.Join(tmpDir, "level1", "level2", "level3", "file.txt") },
+			fileText: "deep content",
+			wantErr:  "",
+		},
 		{
 			name:     "very long content",
-			path:     filepath.Join(tmpDir, "long.txt"),
+			setup:    func() string { return filepath.Join(tmpDir, "long.txt") },
 			fileText: string(make([]byte, 10000)),
+			wantErr:  "",
 		},
 		{
 			name:     "binary-like content",
-			path:     filepath.Join(tmpDir, "binary.dat"),
+			setup:    func() string { return filepath.Join(tmpDir, "binary.dat") },
 			fileText: "\x00\x01\x02\xff\xfe\xfd",
+			wantErr:  "",
 		},
 		{
-			name:     "file in current directory",
-			path:     "temp_test_file.txt",
-			fileText: "current dir",
+			name:           "file in current directory",
+			setup:          func() string { return "temp_test_file.txt" },
+			fileText:       "current dir",
+			wantErr:        "",
+			cleanupCurrent: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := c.Create(tt.path, tt.fileText)
-			require.NoError(t, err)
+			c := &Creator{}
+			path := tt.setup()
+			err := c.Create(path, tt.fileText)
 
-				if tt.name == "file in current directory" {
-				defer os.Remove(tt.path)
+			if tt.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+				return
 			}
 
-			content, err := os.ReadFile(tt.path)
+			require.NoError(t, err)
+
+			content, err := os.ReadFile(path)
 			require.NoError(t, err)
 			assert.Equal(t, tt.fileText, string(content))
+
+			info, err := os.Stat(path)
+			require.NoError(t, err)
+			assert.Equal(t, os.FileMode(0o644), info.Mode().Perm())
+
+			parentDir := filepath.Dir(path)
+			if parentDir != tmpDir && parentDir != "." && parentDir != "/" {
+				assert.DirExists(t, parentDir)
+
+				dirInfo, err := os.Stat(parentDir)
+				require.NoError(t, err)
+				assert.Equal(t, os.FileMode(0o755), dirInfo.Mode().Perm())
+			}
+
+			if tt.cleanupCurrent {
+				defer os.Remove(path)
+			}
 		})
 	}
 }
