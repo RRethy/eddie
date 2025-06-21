@@ -2,30 +2,33 @@ package str_replace
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
 	"github.com/RRethy/eddie/internal/cmd/undo_edit"
+	"github.com/RRethy/eddie/internal/display"
+	"github.com/RRethy/eddie/internal/fileops"
 )
 
-type Replacer struct{}
+type Replacer struct {
+	fileOps *fileops.FileOps
+	display *display.Display
+}
+
+func NewReplacer(w io.Writer) *Replacer {
+	return &Replacer{
+		fileOps: &fileops.FileOps{},
+		display: display.New(w),
+	}
+}
 
 func (r *Replacer) StrReplace(path, oldStr, newStr string, showChanges, showResult bool) error {
-	info, err := os.Stat(path)
+	original, info, err := r.fileOps.ReadFileContentForOperation(path, "replace strings in")
 	if err != nil {
-		return fmt.Errorf("stat %s: %w", path, err)
+		return err
 	}
 
-	if info.IsDir() {
-		return fmt.Errorf("cannot replace strings in directory: %s", path)
-	}
-
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("read file %s: %w", path, err)
-	}
-
-	original := string(content)
 	modified := strings.ReplaceAll(original, oldStr, newStr)
 
 	if original == modified {
@@ -34,19 +37,19 @@ func (r *Replacer) StrReplace(path, oldStr, newStr string, showChanges, showResu
 	}
 
 	if showChanges {
-		r.showDiff(path, original, modified)
+		r.display.ShowDiff(path, original, modified)
 	}
 
-	err = os.WriteFile(path, []byte(modified), info.Mode())
+	err = r.fileOps.WriteFileContent(path, modified, info.Mode())
 	if err != nil {
-		return fmt.Errorf("write file %s: %w", path, err)
+		return err
 	}
 
 	if showResult {
-		r.showResult(path, modified)
+		r.display.ShowResult(path, modified)
 	}
 
-	undoEditor := &undo_edit.UndoEditor{}
+	undoEditor := undo_edit.NewUndoEditor(os.Stdout)
 	err = undoEditor.RecordEdit(path, "str_replace", oldStr, newStr, -1)
 	if err != nil {
 		return fmt.Errorf("record edit: %w", err)
@@ -55,45 +58,4 @@ func (r *Replacer) StrReplace(path, oldStr, newStr string, showChanges, showResu
 	count := strings.Count(original, oldStr)
 	fmt.Printf("Replaced %d occurrence(s) of %q with %q in %s\n", count, oldStr, newStr, path)
 	return nil
-}
-
-func (r *Replacer) showDiff(path, original, modified string) {
-	fmt.Printf("\nChanges in %s:\n", path)
-	fmt.Println("--- Before")
-	fmt.Println("+++ After")
-	
-	origLines := strings.Split(original, "\n")
-	modLines := strings.Split(modified, "\n")
-	
-	maxLines := len(origLines)
-	if len(modLines) > maxLines {
-		maxLines = len(modLines)
-	}
-	
-	for i := 0; i < maxLines; i++ {
-		origLine := ""
-		modLine := ""
-		
-		if i < len(origLines) {
-			origLine = origLines[i]
-		}
-		if i < len(modLines) {
-			modLine = modLines[i]
-		}
-		
-		if origLine != modLine {
-			if origLine != "" {
-				fmt.Printf("-%s\n", origLine)
-			}
-			if modLine != "" {
-				fmt.Printf("+%s\n", modLine)
-			}
-		}
-	}
-	fmt.Println()
-}
-
-func (r *Replacer) showResult(path, content string) {
-	fmt.Printf("\nResult of %s:\n", path)
-	fmt.Println(content)
 }

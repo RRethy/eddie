@@ -4,13 +4,24 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/RRethy/eddie/internal/display"
 )
 
-type UndoEditor struct{}
+type UndoEditor struct {
+	display *display.Display
+}
+
+func NewUndoEditor(w io.Writer) *UndoEditor {
+	return &UndoEditor{
+		display: display.New(w),
+	}
+}
 
 type EditRecord struct {
 	EditType    string    `json:"edit_type"`     // "str_replace" or "insert"
@@ -74,10 +85,10 @@ func (u *UndoEditor) UndoEdit(path string, showChanges, showResult bool) error {
 			return fmt.Errorf("read file after undo: %w", err)
 		}
 		if showChanges {
-			u.showDiff(path, beforeContent, string(afterContent))
+			u.display.ShowDiff(path, beforeContent, string(afterContent))
 		}
 		if showResult {
-			u.showResult(path, string(afterContent))
+			u.display.ShowResult(path, string(afterContent))
 		}
 	}
 
@@ -225,43 +236,3 @@ func (u *UndoEditor) writeEditHistory(editPath string, history *EditHistory) err
 	return nil
 }
 
-func (u *UndoEditor) showDiff(path, before, after string) {
-	fmt.Printf("\nChanges in %s:\n", path)
-	fmt.Println("--- Before undo")
-	fmt.Println("+++ After undo")
-	
-	beforeLines := strings.Split(before, "\n")
-	afterLines := strings.Split(after, "\n")
-	
-	maxLines := len(beforeLines)
-	if len(afterLines) > maxLines {
-		maxLines = len(afterLines)
-	}
-	
-	for i := 0; i < maxLines; i++ {
-		beforeLine := ""
-		afterLine := ""
-		
-		if i < len(beforeLines) {
-			beforeLine = beforeLines[i]
-		}
-		if i < len(afterLines) {
-			afterLine = afterLines[i]
-		}
-		
-		if beforeLine != afterLine {
-			if beforeLine != "" {
-				fmt.Printf("-%s\n", beforeLine)
-			}
-			if afterLine != "" {
-				fmt.Printf("+%s\n", afterLine)
-			}
-		}
-	}
-	fmt.Println()
-}
-
-func (u *UndoEditor) showResult(path, content string) {
-	fmt.Printf("\nResult of %s:\n", path)
-	fmt.Println(content)
-}

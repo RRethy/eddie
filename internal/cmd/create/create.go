@@ -1,5 +1,7 @@
 package create
 
+import "os"
+
 func Create(path, fileText string, showChanges, showResult bool) error {
-	return (&Creator{}).Create(path, fileText, showChanges, showResult)
+	return NewCreator(os.Stdout).Create(path, fileText, showChanges, showResult)
 }

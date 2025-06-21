@@ -2,23 +2,32 @@ package insert
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/RRethy/eddie/internal/cmd/undo_edit"
+	"github.com/RRethy/eddie/internal/display"
+	"github.com/RRethy/eddie/internal/fileops"
 )
 
-type Inserter struct{}
+type Inserter struct {
+	fileOps *fileops.FileOps
+	display *display.Display
+}
+
+func NewInserter(w io.Writer) *Inserter {
+	return &Inserter{
+		fileOps: &fileops.FileOps{},
+		display: display.New(w),
+	}
+}
 
 func (i *Inserter) Insert(path, insertLine, newStr string, showChanges, showResult bool) error {
-	info, err := os.Stat(path)
+	original, info, err := i.fileOps.ReadFileContentForOperation(path, "insert line in")
 	if err != nil {
-		return fmt.Errorf("stat %s: %w", path, err)
-	}
-
-	if info.IsDir() {
-		return fmt.Errorf("cannot insert line in directory: %s", path)
+		return err
 	}
 
 	lineNum, err := i.parseLineNumber(insertLine)
@@ -26,31 +35,25 @@ func (i *Inserter) Insert(path, insertLine, newStr string, showChanges, showResu
 		return fmt.Errorf("parse line number: %w", err)
 	}
 
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("read file %s: %w", path, err)
-	}
-
-	original := string(content)
 	modified, err := i.insertLine(original, lineNum, newStr)
 	if err != nil {
 		return fmt.Errorf("insert line: %w", err)
 	}
 
 	if showChanges {
-		i.showDiff(path, original, modified, lineNum)
+		i.display.ShowInsertDiff(path, original, modified, lineNum)
 	}
 
-	err = os.WriteFile(path, []byte(modified), info.Mode())
+	err = i.fileOps.WriteFileContent(path, modified, info.Mode())
 	if err != nil {
-		return fmt.Errorf("write file %s: %w", path, err)
+		return err
 	}
 
 	if showResult {
-		i.showResult(path, modified)
+		i.display.ShowResult(path, modified)
 	}
 
-	undoEditor := &undo_edit.UndoEditor{}
+	undoEditor := undo_edit.NewUndoEditor(os.Stdout)
 	err = undoEditor.RecordEdit(path, "insert", "", newStr, lineNum)
 	if err != nil {
 		return fmt.Errorf("record edit: %w", err)
@@ -108,47 +111,4 @@ func (i *Inserter) insertLine(content string, lineNum int, newStr string) (strin
 	}
 
 	return joined, nil
-}
-
-func (i *Inserter) showDiff(path, original, modified string, lineNum int) {
-	fmt.Printf("\nChanges in %s:\n", path)
-	fmt.Println("--- Before")
-	fmt.Println("+++ After")
-	
-	origLines := strings.Split(original, "\n")
-	modLines := strings.Split(modified, "\n")
-	
-	// Show context around the insertion point
-	start := lineNum - 3
-	if start < 1 {
-		start = 1
-	}
-	end := lineNum + 3
-	if end > len(modLines) {
-		end = len(modLines)
-	}
-	
-	for i := start; i <= end; i++ {
-		if i == lineNum {
-			// Show the inserted line
-			if i <= len(modLines) {
-				fmt.Printf("+%s\n", modLines[i-1])
-			}
-		} else {
-			// Show existing lines for context
-			origIdx := i
-			if i > lineNum {
-				origIdx = i - 1 // Adjust for insertion
-			}
-			if origIdx <= len(origLines) && origIdx > 0 {
-				fmt.Printf(" %s\n", origLines[origIdx-1])
-			}
-		}
-	}
-	fmt.Println()
-}
-
-func (i *Inserter) showResult(path, content string) {
-	fmt.Printf("\nResult of %s:\n", path)
-	fmt.Println(content)
 }
