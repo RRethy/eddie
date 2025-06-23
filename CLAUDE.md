@@ -214,6 +214,29 @@ eddie ls
 eddie ls /path/to/directory
 ```
 
+### search
+Search for code patterns using tree-sitter queries across files.
+
+**Usage:**
+```bash
+eddie search <file|dir> --tree-sitter-query "<tree-sitter-query>"
+```
+
+**Parameters:**
+- `<file|dir>`: Path to file or directory to search
+
+**Flags:**
+- `--tree-sitter-query`: Tree-sitter query pattern (required)
+
+**Examples:**
+```bash
+eddie search ./src --tree-sitter-query "(function_declaration name: (identifier) @func)"
+eddie search main.go --tree-sitter-query "(call_expression function: (identifier) @call)"
+eddie search . --tree-sitter-query "(struct_type name: (type_identifier) @struct)"
+```
+
+**Note:** Currently supports Go files (.go extension). The search command uses tree-sitter to parse Go source code and execute structural queries. Query results show file:line:column format with capture group names and matched line content.
+
 # Development Guidelines
 
 ## Go Code Style - Rob Pike Style (MANDATORY)
