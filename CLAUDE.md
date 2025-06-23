@@ -228,14 +228,44 @@ eddie search <file|dir> --tree-sitter-query "<tree-sitter-query>"
 **Flags:**
 - `--tree-sitter-query`: Tree-sitter query pattern (required)
 
+**Supported Languages:**
+- **Go** (`.go`) - `(function_declaration name: (identifier) @func)`
+- **JavaScript** (`.js`, `.mjs`, `.jsx`) - `(function_declaration name: (identifier) @func)`
+- **TypeScript** (`.ts`, `.tsx`) - `(function_declaration name: (identifier) @func)`
+- **Python** (`.py`, `.pyi`) - `(function_definition name: (identifier) @func)`
+- **Rust** (`.rs`) - `(function_item name: (identifier) @func)`
+- **Java** (`.java`) - `(class_declaration name: (identifier) @class)` or `(method_declaration name: (identifier) @method)`
+- **C** (`.c`, `.h`) - `(function_definition declarator: (function_declarator declarator: (identifier) @func))`
+- **C++** (`.cc`, `.cpp`, `.cxx`, `.hpp`, `.hxx`) - `(function_definition declarator: (function_declarator declarator: (identifier) @func))`
+
 **Examples:**
 ```bash
+# Go functions
+eddie search . --tree-sitter-query "(function_declaration name: (identifier) @func)"
+
+# JavaScript/TypeScript functions  
 eddie search ./src --tree-sitter-query "(function_declaration name: (identifier) @func)"
+
+# Python functions
+eddie search . --tree-sitter-query "(function_definition name: (identifier) @func)"
+
+# Rust functions
+eddie search . --tree-sitter-query "(function_item name: (identifier) @func)"
+
+# Java classes
+eddie search . --tree-sitter-query "(class_declaration name: (identifier) @class)"
+
+# C/C++ functions
+eddie search . --tree-sitter-query "(function_definition declarator: (function_declarator declarator: (identifier) @func))"
+
+# Go method calls
 eddie search main.go --tree-sitter-query "(call_expression function: (identifier) @call)"
-eddie search . --tree-sitter-query "(struct_type name: (type_identifier) @struct)"
+
+# Go struct types
+eddie search . --tree-sitter-query "(type_declaration (type_spec name: (type_identifier) @struct type: (struct_type)))"
 ```
 
-**Note:** Currently supports Go files (.go extension). The search command uses tree-sitter to parse Go source code and execute structural queries. Query results show file:line:column format with capture group names and matched line content.
+**Note:** The search command uses tree-sitter to parse source code and execute structural queries. Different languages have different query syntax - use the appropriate query for each language. Query results show file:line:column format with capture group names and matched line content. Unsupported file types are automatically ignored.
 
 # Development Guidelines
 
