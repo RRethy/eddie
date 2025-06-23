@@ -30,8 +30,7 @@ go test ./...
 # Run only unit tests
 go test ./internal/...
 
-# Run only e2e tests
-go test ./test/e2e/...
+
 
 # Run benchmarks
 go test -bench=. ./internal/...
@@ -68,7 +67,7 @@ go mod tidy
 - `internal/cmd/insert/` - Business logic for the insert command
 - `internal/cmd/undo_edit/` - Business logic for the undo_edit command
 - `internal/cmd/ls/` - Business logic for the ls command
-- `test/e2e/` - End-to-end tests that test the CLI binary
+
 - `go.mod` - Go module file defining dependencies (Cobra CLI framework)
 
 ## Architecture
