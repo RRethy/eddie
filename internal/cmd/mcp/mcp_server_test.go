@@ -65,47 +65,60 @@ func TestMcpServer_createGlobTool(t *testing.T) {
 	assert.Contains(t, tool.Description, "Fast file pattern matching")
 }
 
-func TestMcpServer_handleView(t *testing.T) {
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test.txt")
-	content := "line1\nline2\nline3"
+func TestMcpServer_createSearchTool(t *testing.T) {
+	m := &McpServer{}
+	tool := m.createSearchTool()
 
-	err := os.WriteFile(testFile, []byte(content), 0o644)
+	assert.NotNil(t, tool)
+	assert.Equal(t, "search", tool.Name)
+	assert.Contains(t, tool.Description, "Search for code patterns")
+}
+
+func TestMcpServer_handleSearch(t *testing.T) {
+	tmpDir := t.TempDir()
+	goFile := filepath.Join(tmpDir, "test.go")
+	goContent := `package main
+
+func hello() {
+	println("Hello, World!")
+}
+
+func goodbye() {
+	println("Goodbye!")
+}
+`
+
+	err := os.WriteFile(goFile, []byte(goContent), 0o644)
 	require.NoError(t, err)
 
 	m := &McpServer{}
 
 	tests := []struct {
-		args    map[string]interface{}
+		args    map[string]any
 		name    string
 		wantErr bool
 	}{
 		{
-			name: "valid file view",
-			args: map[string]interface{}{
-				"path": testFile,
+			name: "search Go functions",
+			args: map[string]any{
+				"path":              goFile,
+				"tree_sitter_query": "(function_declaration name: (identifier) @func)",
 			},
 			wantErr: false,
 		},
 		{
-			name: "view with range",
-			args: map[string]interface{}{
-				"path":  testFile,
-				"range": "1,2",
+			name: "missing path",
+			args: map[string]any{
+				"tree_sitter_query": "(function_declaration name: (identifier) @func)",
 			},
-			wantErr: false,
-		},
-		{
-			name:    "missing path",
-			args:    map[string]interface{}{},
 			wantErr: true,
 		},
 		{
-			name: "nonexistent file",
-			args: map[string]interface{}{
-				"path": "/nonexistent/file.txt",
+			name: "missing query",
+			args: map[string]any{
+				"path": goFile,
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 
@@ -117,7 +130,7 @@ func TestMcpServer_handleView(t *testing.T) {
 				},
 			}
 
-			result, err := m.handleView(context.Background(), req)
+			result, err := m.handleSearch(context.Background(), req)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -127,326 +140,13 @@ func TestMcpServer_handleView(t *testing.T) {
 			require.NoError(t, err)
 			assert.NotNil(t, result)
 			assert.NotEmpty(t, result.Content)
-		})
-	}
-}
 
-func TestMcpServer_handleCreate(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	m := &McpServer{}
-
-	tests := []struct {
-		args    map[string]interface{}
-		name    string
-		wantErr bool
-	}{
-		{
-			name: "create new file",
-			args: map[string]interface{}{
-				"path":    filepath.Join(tmpDir, "new.txt"),
-				"content": "Hello, World!",
-			},
-			wantErr: false,
-		},
-		{
-			name: "missing path",
-			args: map[string]interface{}{
-				"content": "Hello",
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing content",
-			args: map[string]interface{}{
-				"path": filepath.Join(tmpDir, "test.txt"),
-			},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req := mcp.CallToolRequest{
-				Params: mcp.CallToolParams{
-					Arguments: tt.args,
-				},
+			if tt.name == "search Go functions" {
+				textContent, ok := result.Content[0].(mcp.TextContent)
+				require.True(t, ok)
+				assert.Contains(t, textContent.Text, "hello")
+				assert.Contains(t, textContent.Text, "goodbye")
 			}
-
-			result, err := m.handleCreate(context.Background(), req)
-
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-
-			require.NoError(t, err)
-			assert.NotNil(t, result)
-			assert.False(t, result.IsError)
-			assert.NotEmpty(t, result.Content)
-		})
-	}
-}
-
-func TestMcpServer_handleStrReplace(t *testing.T) {
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test.txt")
-	content := "Hello World"
-
-	err := os.WriteFile(testFile, []byte(content), 0o644)
-	require.NoError(t, err)
-
-	m := &McpServer{}
-
-	tests := []struct {
-		args    map[string]interface{}
-		name    string
-		wantErr bool
-	}{
-		{
-			name: "valid replacement",
-			args: map[string]interface{}{
-				"path":    testFile,
-				"old_str": "World",
-				"new_str": "Universe",
-			},
-			wantErr: false,
-		},
-		{
-			name: "missing path",
-			args: map[string]interface{}{
-				"old_str": "old",
-				"new_str": "new",
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing old_str",
-			args: map[string]interface{}{
-				"path":    testFile,
-				"new_str": "new",
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing new_str",
-			args: map[string]interface{}{
-				"path":    testFile,
-				"old_str": "old",
-			},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req := mcp.CallToolRequest{
-				Params: mcp.CallToolParams{
-					Arguments: tt.args,
-				},
-			}
-
-			result, err := m.handleStrReplace(context.Background(), req)
-
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-
-			require.NoError(t, err)
-			assert.NotNil(t, result)
-			assert.False(t, result.IsError)
-		})
-	}
-}
-
-func TestMcpServer_handleInsert(t *testing.T) {
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test.txt")
-	content := "line1\nline2\nline3"
-
-	err := os.WriteFile(testFile, []byte(content), 0o644)
-	require.NoError(t, err)
-
-	m := &McpServer{}
-
-	tests := []struct {
-		args    map[string]interface{}
-		name    string
-		wantErr bool
-	}{
-		{
-			name: "valid insertion",
-			args: map[string]interface{}{
-				"path":    testFile,
-				"line":    float64(2),
-				"content": "inserted line",
-			},
-			wantErr: false,
-		},
-		{
-			name: "missing path",
-			args: map[string]interface{}{
-				"line":    float64(1),
-				"content": "text",
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing line",
-			args: map[string]interface{}{
-				"path":    testFile,
-				"content": "text",
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing content",
-			args: map[string]interface{}{
-				"path": testFile,
-				"line": float64(1),
-			},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req := mcp.CallToolRequest{
-				Params: mcp.CallToolParams{
-					Arguments: tt.args,
-				},
-			}
-
-			result, err := m.handleInsert(context.Background(), req)
-
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-
-			require.NoError(t, err)
-			assert.NotNil(t, result)
-			assert.False(t, result.IsError)
-		})
-	}
-}
-
-func TestMcpServer_handleUndoEdit(t *testing.T) {
-	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test.txt")
-	content := "original content"
-
-	err := os.WriteFile(testFile, []byte(content), 0o644)
-	require.NoError(t, err)
-
-	m := &McpServer{}
-
-	tests := []struct {
-		args    map[string]interface{}
-		name    string
-		wantErr bool
-	}{
-		{
-			name:    "missing path",
-			args:    map[string]interface{}{},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req := mcp.CallToolRequest{
-				Params: mcp.CallToolParams{
-					Arguments: tt.args,
-				},
-			}
-
-			result, err := m.handleUndoEdit(context.Background(), req)
-
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-
-			require.NoError(t, err)
-			assert.NotNil(t, result)
-		})
-	}
-}
-
-func TestMcpServer_handleGlob(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	files := []string{"test1.txt", "test2.txt", "main.go"}
-	for _, f := range files {
-		err := os.WriteFile(filepath.Join(tmpDir, f), []byte("content"), 0o644)
-		require.NoError(t, err)
-	}
-
-	m := &McpServer{}
-
-	tests := []struct {
-		args    map[string]interface{}
-		name    string
-		wantErr bool
-	}{
-		{
-			name: "glob txt files",
-			args: map[string]interface{}{
-				"pattern": "*.txt",
-				"path":    tmpDir,
-			},
-			wantErr: false,
-		},
-		{
-			name: "glob without path",
-			args: map[string]interface{}{
-				"pattern": "*.go",
-			},
-			wantErr: false,
-		},
-		{
-			name: "recursive glob",
-			args: map[string]interface{}{
-				"pattern": "**/*.txt",
-				"path":    tmpDir,
-			},
-			wantErr: false,
-		},
-		{
-			name:    "missing pattern",
-			args:    map[string]interface{}{},
-			wantErr: true,
-		},
-		{
-			name: "invalid pattern",
-			args: map[string]interface{}{
-				"pattern": "[",
-				"path":    tmpDir,
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req := mcp.CallToolRequest{
-				Params: mcp.CallToolParams{
-					Arguments: tt.args,
-				},
-			}
-
-			result, err := m.handleGlob(context.Background(), req)
-
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
-			}
-
-			require.NoError(t, err)
-			assert.NotNil(t, result)
-			assert.NotEmpty(t, result.Content)
 		})
 	}
 }

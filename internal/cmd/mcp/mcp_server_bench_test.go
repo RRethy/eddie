@@ -23,7 +23,7 @@ func BenchmarkMcpServer_handleView(b *testing.B) {
 	m := &McpServer{}
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
-			Arguments: map[string]interface{}{
+			Arguments: map[string]any{
 				"path": testFile,
 			},
 		},
@@ -58,7 +58,7 @@ func BenchmarkMcpServer_handleCreate(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				req := mcp.CallToolRequest{
 					Params: mcp.CallToolParams{
-						Arguments: map[string]interface{}{
+						Arguments: map[string]any{
 							"path":    filepath.Join(tmpDir, fmt.Sprintf("file_%d.txt", i)),
 							"content": content,
 						},
@@ -90,7 +90,7 @@ func BenchmarkMcpServer_handleStrReplace(b *testing.B) {
 
 		req := mcp.CallToolRequest{
 			Params: mcp.CallToolParams{
-				Arguments: map[string]interface{}{
+				Arguments: map[string]any{
 					"path":    testFile,
 					"old_str": "World",
 					"new_str": "Universe",
@@ -121,7 +121,7 @@ func BenchmarkMcpServer_handleInsert(b *testing.B) {
 
 		req := mcp.CallToolRequest{
 			Params: mcp.CallToolParams{
-				Arguments: map[string]interface{}{
+				Arguments: map[string]any{
 					"path":    testFile,
 					"line":    float64(3),
 					"content": "inserted line",
@@ -176,7 +176,7 @@ func BenchmarkMcpServer_handleGlob(b *testing.B) {
 			m := &McpServer{}
 			req := mcp.CallToolRequest{
 				Params: mcp.CallToolParams{
-					Arguments: map[string]interface{}{
+					Arguments: map[string]any{
 						"pattern": tt.pattern,
 						"path":    tmpDir,
 					},

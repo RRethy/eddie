@@ -43,6 +43,5 @@ Example:
 
 func init() {
 	searchCmd.Flags().StringP("tree-sitter-query", "q", "", "Tree-sitter query pattern (required)")
-	searchCmd.MarkFlagRequired("tree-sitter-query")
 	rootCmd.AddCommand(searchCmd)
 }

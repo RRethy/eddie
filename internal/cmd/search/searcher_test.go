@@ -50,7 +50,7 @@ var x = 1`,
 		t.Run(tt.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			testFile := filepath.Join(tmpDir, "test.go")
-			err := os.WriteFile(testFile, []byte(tt.content), 0644)
+			err := os.WriteFile(testFile, []byte(tt.content), 0o644)
 			require.NoError(t, err)
 
 			s := &Searcher{}
@@ -101,7 +101,7 @@ func TestSearcher_Search_JavaScript(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			testFile := filepath.Join(tmpDir, tt.filename)
-			err := os.WriteFile(testFile, []byte(tt.content), 0644)
+			err := os.WriteFile(testFile, []byte(tt.content), 0o644)
 			require.NoError(t, err)
 
 			s := &Searcher{}
@@ -161,7 +161,7 @@ function Component({ name }: Props) {
 		t.Run(tt.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			testFile := filepath.Join(tmpDir, tt.filename)
-			err := os.WriteFile(testFile, []byte(tt.content), 0644)
+			err := os.WriteFile(testFile, []byte(tt.content), 0o644)
 			require.NoError(t, err)
 
 			s := &Searcher{}
@@ -201,9 +201,9 @@ func TestSearcher_Search_Python(t *testing.T) {
 			shouldErr: false,
 		},
 		{
-			name:     "python interface file",
-			filename: "test.pyi",
-			content: `def greet(name: str) -> str: ...`,
+			name:      "python interface file",
+			filename:  "test.pyi",
+			content:   `def greet(name: str) -> str: ...`,
 			query:     "(function_definition name: (identifier) @func)",
 			shouldErr: false,
 		},
@@ -213,7 +213,7 @@ func TestSearcher_Search_Python(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			testFile := filepath.Join(tmpDir, tt.filename)
-			err := os.WriteFile(testFile, []byte(tt.content), 0644)
+			err := os.WriteFile(testFile, []byte(tt.content), 0o644)
 			require.NoError(t, err)
 
 			s := &Searcher{}
@@ -257,7 +257,7 @@ func TestSearcher_Search_Rust(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			testFile := filepath.Join(tmpDir, "test.rs")
-			err := os.WriteFile(testFile, []byte(tt.content), 0644)
+			err := os.WriteFile(testFile, []byte(tt.content), 0o644)
 			require.NoError(t, err)
 
 			s := &Searcher{}
@@ -304,7 +304,7 @@ func TestSearcher_Search_Java(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			testFile := filepath.Join(tmpDir, "test.java")
-			err := os.WriteFile(testFile, []byte(tt.content), 0644)
+			err := os.WriteFile(testFile, []byte(tt.content), 0o644)
 			require.NoError(t, err)
 
 			s := &Searcher{}
@@ -356,7 +356,7 @@ void greet(void);
 		t.Run(tt.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			testFile := filepath.Join(tmpDir, tt.filename)
-			err := os.WriteFile(testFile, []byte(tt.content), 0644)
+			err := os.WriteFile(testFile, []byte(tt.content), 0o644)
 			require.NoError(t, err)
 
 			s := &Searcher{}
@@ -411,7 +411,7 @@ public:
 		t.Run(tt.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			testFile := filepath.Join(tmpDir, tt.filename)
-			err := os.WriteFile(testFile, []byte(tt.content), 0644)
+			err := os.WriteFile(testFile, []byte(tt.content), 0o644)
 			require.NoError(t, err)
 
 			s := &Searcher{}
@@ -456,7 +456,7 @@ func TestSearcher_Search_UnsupportedFiles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			testFile := filepath.Join(tmpDir, tt.filename)
-			err := os.WriteFile(testFile, []byte(tt.content), 0644)
+			err := os.WriteFile(testFile, []byte(tt.content), 0o644)
 			require.NoError(t, err)
 
 			s := &Searcher{}
@@ -473,21 +473,21 @@ func TestSearcher_SearchDir_MultiLanguage(t *testing.T) {
 	err := os.WriteFile(goFile, []byte(`package main
 func hello() {
 	println("hello")
-}`), 0644)
+}`), 0o644)
 	require.NoError(t, err)
 
 	jsFile := filepath.Join(tmpDir, "test.js")
 	err = os.WriteFile(jsFile, []byte(`function greet() {
 	console.log("hello");
-}`), 0644)
+}`), 0o644)
 	require.NoError(t, err)
 
 	txtFile := filepath.Join(tmpDir, "readme.txt")
-	err = os.WriteFile(txtFile, []byte("This should be ignored"), 0644)
+	err = os.WriteFile(txtFile, []byte("This should be ignored"), 0o644)
 	require.NoError(t, err)
 
 	s := &Searcher{}
-	
+
 	t.Run("function declaration search (Go and JS)", func(t *testing.T) {
 		err = s.Search(tmpDir, "(function_declaration name: (identifier) @func)")
 		assert.NoError(t, err)
@@ -499,11 +499,11 @@ func TestSearcher_SearchDir_LanguageSpecific(t *testing.T) {
 
 	pyFile := filepath.Join(tmpDir, "test.py")
 	err := os.WriteFile(pyFile, []byte(`def welcome():
-    print("hello")`), 0644)
+    print("hello")`), 0o644)
 	require.NoError(t, err)
 
 	s := &Searcher{}
-	
+
 	t.Run("python function search", func(t *testing.T) {
 		err = s.Search(tmpDir, "(function_definition name: (identifier) @func)")
 		assert.NoError(t, err)
@@ -512,29 +512,29 @@ func TestSearcher_SearchDir_LanguageSpecific(t *testing.T) {
 
 func TestSearcher_SearchDir_NestedDirectories(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	subDir := filepath.Join(tmpDir, "subdir")
-	err := os.Mkdir(subDir, 0755)
+	err := os.Mkdir(subDir, 0o755)
 	require.NoError(t, err)
 
 	goFile := filepath.Join(tmpDir, "main.go")
 	err = os.WriteFile(goFile, []byte(`package main
 func main() {
 	println("main")
-}`), 0644)
+}`), 0o644)
 	require.NoError(t, err)
 
 	nestedGoFile := filepath.Join(subDir, "helper.go")
 	err = os.WriteFile(nestedGoFile, []byte(`package main
 func helper() {
 	println("helper")
-}`), 0644)
+}`), 0o644)
 	require.NoError(t, err)
 
 	jsFile := filepath.Join(subDir, "script.js")
 	err = os.WriteFile(jsFile, []byte(`function process() {
 	console.log("processing");
-}`), 0644)
+}`), 0o644)
 	require.NoError(t, err)
 
 	s := &Searcher{}

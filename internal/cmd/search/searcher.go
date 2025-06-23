@@ -21,18 +21,20 @@ type Searcher struct{}
 
 type Match struct {
 	File    string
-	Line    int
-	Column  int
 	Content string
 	Capture string
+	Line    int
+	Column  int
 }
 
 var languageMap = map[string]func() *tree_sitter.Language{
-	".go":   func() *tree_sitter.Language { return tree_sitter.NewLanguage(tree_sitter_go.Language()) },
-	".js":   func() *tree_sitter.Language { return tree_sitter.NewLanguage(tree_sitter_javascript.Language()) },
-	".mjs":  func() *tree_sitter.Language { return tree_sitter.NewLanguage(tree_sitter_javascript.Language()) },
-	".jsx":  func() *tree_sitter.Language { return tree_sitter.NewLanguage(tree_sitter_javascript.Language()) },
-	".ts":   func() *tree_sitter.Language { return tree_sitter.NewLanguage(tree_sitter_typescript.LanguageTypescript()) },
+	".go":  func() *tree_sitter.Language { return tree_sitter.NewLanguage(tree_sitter_go.Language()) },
+	".js":  func() *tree_sitter.Language { return tree_sitter.NewLanguage(tree_sitter_javascript.Language()) },
+	".mjs": func() *tree_sitter.Language { return tree_sitter.NewLanguage(tree_sitter_javascript.Language()) },
+	".jsx": func() *tree_sitter.Language { return tree_sitter.NewLanguage(tree_sitter_javascript.Language()) },
+	".ts": func() *tree_sitter.Language {
+		return tree_sitter.NewLanguage(tree_sitter_typescript.LanguageTypescript())
+	},
 	".tsx":  func() *tree_sitter.Language { return tree_sitter.NewLanguage(tree_sitter_typescript.LanguageTSX()) },
 	".py":   func() *tree_sitter.Language { return tree_sitter.NewLanguage(tree_sitter_python.Language()) },
 	".pyi":  func() *tree_sitter.Language { return tree_sitter.NewLanguage(tree_sitter_python.Language()) },
@@ -75,11 +77,11 @@ func (s *Searcher) searchDir(dir, queryStr string) error {
 		if info.IsDir() {
 			return nil
 		}
-		
+
 		if getLanguageFromFile(path) == nil {
 			return nil
 		}
-		
+
 		return s.searchFile(path, queryStr)
 	})
 }
@@ -93,7 +95,10 @@ func (s *Searcher) searchFile(filename, queryStr string) error {
 	parser := tree_sitter.NewParser()
 	defer parser.Close()
 
-	parser.SetLanguage(lang)
+	err := parser.SetLanguage(lang)
+	if err != nil {
+		return fmt.Errorf("set language for %s: %w", filename, err)
+	}
 
 	query, queryErr := tree_sitter.NewQuery(lang, queryStr)
 	if queryErr != nil {
@@ -123,7 +128,7 @@ func (s *Searcher) searchFile(filename, queryStr string) error {
 
 			lines := strings.Split(string(content), "\n")
 			var lineContent string
-			if int(startPos.Row) < len(lines) {
+			if startPos.Row < uint(len(lines)) {
 				lineContent = strings.TrimSpace(lines[startPos.Row])
 			}
 

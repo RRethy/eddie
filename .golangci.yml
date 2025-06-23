@@ -38,6 +38,7 @@ linters:
     - usetesting
     - wastedassign
     - gci
+    - revive
     
   disable:
     - depguard     # We don't need import restrictions
@@ -49,7 +50,6 @@ linters:
     - nestif       # Overlaps with gocyclo
     - nlreturn     # Too opinionated
     - paralleltest # Not all tests need parallel
-    - revive       # Overlaps with other linters
     - stylecheck   # Too opinionated
     - testpackage  # Same package tests are fine
     - varnamelen   # Variable name length too restrictive
@@ -108,6 +108,12 @@ linters-settings:
 
   staticcheck:
     checks: ["all"]
+  
+  revive:
+    rules:
+      - name: use-any
+        severity: error
+        disabled: false
 
 issues:
   max-issues-per-linter: 0

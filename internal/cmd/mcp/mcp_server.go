@@ -15,6 +15,7 @@ import (
 	"github.com/RRethy/eddie/internal/cmd/glob"
 	"github.com/RRethy/eddie/internal/cmd/insert"
 	"github.com/RRethy/eddie/internal/cmd/ls"
+	"github.com/RRethy/eddie/internal/cmd/search"
 	"github.com/RRethy/eddie/internal/cmd/str_replace"
 	"github.com/RRethy/eddie/internal/cmd/undo_edit"
 	"github.com/RRethy/eddie/internal/cmd/view"
@@ -36,6 +37,7 @@ func (m *McpServer) Mcp() error {
 	s.AddTool(*m.createUndoEditTool(), m.handleUndoEdit)
 	s.AddTool(*m.createGlobTool(), m.handleGlob)
 	s.AddTool(*m.createLsTool(), m.handleLs)
+	s.AddTool(*m.createSearchTool(), m.handleSearch)
 
 	return server.ServeStdio(s)
 }
@@ -106,7 +108,7 @@ func (m *McpServer) createGlobTool() *mcp.Tool {
 }
 
 func (m *McpServer) handleView(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
+	args, ok := req.Params.Arguments.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid arguments")
 	}
@@ -151,7 +153,7 @@ func (m *McpServer) handleView(ctx context.Context, req mcp.CallToolRequest) (*m
 }
 
 func (m *McpServer) handleStrReplace(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
+	args, ok := req.Params.Arguments.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid arguments")
 	}
@@ -197,7 +199,7 @@ func (m *McpServer) handleStrReplace(ctx context.Context, req mcp.CallToolReques
 }
 
 func (m *McpServer) handleCreate(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
+	args, ok := req.Params.Arguments.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid arguments")
 	}
@@ -239,7 +241,7 @@ func (m *McpServer) handleCreate(ctx context.Context, req mcp.CallToolRequest) (
 }
 
 func (m *McpServer) handleInsert(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
+	args, ok := req.Params.Arguments.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid arguments")
 	}
@@ -286,7 +288,7 @@ func (m *McpServer) handleInsert(ctx context.Context, req mcp.CallToolRequest) (
 }
 
 func (m *McpServer) handleUndoEdit(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
+	args, ok := req.Params.Arguments.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid arguments")
 	}
@@ -324,7 +326,7 @@ func (m *McpServer) handleUndoEdit(ctx context.Context, req mcp.CallToolRequest)
 }
 
 func (m *McpServer) handleGlob(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
+	args, ok := req.Params.Arguments.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid arguments")
 	}
@@ -368,6 +370,51 @@ func (m *McpServer) handleGlob(ctx context.Context, req mcp.CallToolRequest) (*m
 	}, nil
 }
 
+func (m *McpServer) handleSearch(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, ok := req.Params.Arguments.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("invalid arguments")
+	}
+
+	path, ok := args["path"].(string)
+	if !ok {
+		return nil, fmt.Errorf("path parameter required")
+	}
+
+	query, ok := args["tree_sitter_query"].(string)
+	if !ok {
+		return nil, fmt.Errorf("tree_sitter_query parameter required")
+	}
+
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	err := search.Search(path, query)
+
+	w.Close()
+	os.Stdout = old
+
+	var buf bytes.Buffer
+	_, _ = io.Copy(&buf, r)
+	output := buf.String()
+
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				mcp.NewTextContent(fmt.Sprintf("Error: %v", err)),
+			},
+		}, nil
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.NewTextContent(output),
+		},
+	}, nil
+}
+
 func (m *McpServer) createLsTool() *mcp.Tool {
 	tool := mcp.NewTool("ls",
 		mcp.WithDescription("List directory contents"),
@@ -377,8 +424,18 @@ func (m *McpServer) createLsTool() *mcp.Tool {
 	return &tool
 }
 
+func (m *McpServer) createSearchTool() *mcp.Tool {
+	tool := mcp.NewTool("search",
+		mcp.WithDescription("Search for code patterns using tree-sitter queries across files"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("Path to file or directory to search")),
+		mcp.WithString("tree_sitter_query", mcp.Required(), mcp.Description("Tree-sitter query pattern")),
+		mcp.WithReadOnlyHintAnnotation(true),
+	)
+	return &tool
+}
+
 func (m *McpServer) handleLs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	args, ok := req.Params.Arguments.(map[string]interface{})
+	args, ok := req.Params.Arguments.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("invalid arguments")
 	}

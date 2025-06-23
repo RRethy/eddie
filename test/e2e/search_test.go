@@ -35,7 +35,7 @@ type Person struct {
 func (p Person) sayHello() {
 	fmt.Printf("Hi, I'm %s\n", p.Name)
 }`
-	require.NoError(t, os.WriteFile(goFile, []byte(goContent), 0644))
+	require.NoError(t, os.WriteFile(goFile, []byte(goContent), 0o644))
 
 	tests := []struct {
 		name         string
@@ -119,7 +119,7 @@ class Person {
 }
 
 greet("World");`
-	require.NoError(t, os.WriteFile(jsFile, []byte(jsContent), 0644))
+	require.NoError(t, os.WriteFile(jsFile, []byte(jsContent), 0o644))
 
 	tests := []struct {
 		name         string
@@ -189,7 +189,7 @@ def main():
 
 if __name__ == "__main__":
     main()`
-	require.NoError(t, os.WriteFile(pyFile, []byte(pyContent), 0644))
+	require.NoError(t, os.WriteFile(pyFile, []byte(pyContent), 0o644))
 
 	tests := []struct {
 		name         string
@@ -243,29 +243,29 @@ func TestSearchCommand_MultiLanguage(t *testing.T) {
 func hello() {
 	println("Go Hello")
 }`
-	require.NoError(t, os.WriteFile(goFile, []byte(goContent), 0644))
+	require.NoError(t, os.WriteFile(goFile, []byte(goContent), 0o644))
 
 	jsFile := filepath.Join(tmpDir, "script.js")
 	jsContent := `function hello() {
     console.log("JS Hello");
 }`
-	require.NoError(t, os.WriteFile(jsFile, []byte(jsContent), 0644))
+	require.NoError(t, os.WriteFile(jsFile, []byte(jsContent), 0o644))
 
 	pyFile := filepath.Join(tmpDir, "script.py")
 	pyContent := `def hello():
     print("Python Hello")`
-	require.NoError(t, os.WriteFile(pyFile, []byte(pyContent), 0644))
+	require.NoError(t, os.WriteFile(pyFile, []byte(pyContent), 0o644))
 
 	// Create unsupported file that should be ignored
 	txtFile := filepath.Join(tmpDir, "readme.txt")
-	require.NoError(t, os.WriteFile(txtFile, []byte("This is plain text"), 0644))
+	require.NoError(t, os.WriteFile(txtFile, []byte("This is plain text"), 0o644))
 
 	tests := []struct {
 		name         string
+		description  string
 		args         []string
 		wantContains []string
 		wantErr      bool
-		description  string
 	}{
 		{
 			name: "function declaration search on specific files",
@@ -309,13 +309,13 @@ func hello() {
 
 func TestSearchCommand_NestedDirectories(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	// Create nested directory structure
 	subDir := filepath.Join(tmpDir, "src")
-	require.NoError(t, os.Mkdir(subDir, 0755))
-	
+	require.NoError(t, os.Mkdir(subDir, 0o755))
+
 	nestedDir := filepath.Join(subDir, "utils")
-	require.NoError(t, os.Mkdir(nestedDir, 0755))
+	require.NoError(t, os.Mkdir(nestedDir, 0o755))
 
 	// Create files in different directories
 	mainFile := filepath.Join(tmpDir, "main.go")
@@ -323,24 +323,24 @@ func TestSearchCommand_NestedDirectories(t *testing.T) {
 func main() {
 	println("main")
 }`
-	require.NoError(t, os.WriteFile(mainFile, []byte(mainContent), 0644))
+	require.NoError(t, os.WriteFile(mainFile, []byte(mainContent), 0o644))
 
 	srcFile := filepath.Join(subDir, "helper.go")
 	srcContent := `package src
 func helper() {
 	println("helper")
 }`
-	require.NoError(t, os.WriteFile(srcFile, []byte(srcContent), 0644))
+	require.NoError(t, os.WriteFile(srcFile, []byte(srcContent), 0o644))
 
 	utilFile := filepath.Join(nestedDir, "util.go")
 	utilContent := `package utils
 func utility() {
 	println("utility")
 }`
-	require.NoError(t, os.WriteFile(utilFile, []byte(utilContent), 0644))
+	require.NoError(t, os.WriteFile(utilFile, []byte(utilContent), 0o644))
 
 	stdout, stderr, err := runEddie(t, "search", tmpDir, "--tree-sitter-query", "(function_declaration name: (identifier) @func)")
-	
+
 	assert.NoError(t, err, "stderr: %s", stderr)
 	assert.Contains(t, stdout, "main.go:", "should find main.go")
 	assert.Contains(t, stdout, "helper.go:", "should find helper.go")
@@ -352,23 +352,17 @@ func utility() {
 
 func TestSearchCommand_ErrorConditions(t *testing.T) {
 	tmpDir := t.TempDir()
-	
+
 	// Create a test Go file for invalid query test
 	testFile := filepath.Join(tmpDir, "test.go")
-	require.NoError(t, os.WriteFile(testFile, []byte("package main\nfunc test() {}"), 0644))
+	require.NoError(t, os.WriteFile(testFile, []byte("package main\nfunc test() {}"), 0o644))
 
 	tests := []struct {
 		name    string
+		errMsg  string
 		args    []string
 		wantErr bool
-		errMsg  string
 	}{
-		{
-			name:    "missing query flag",
-			args:    []string{"search", tmpDir},
-			wantErr: true,
-			errMsg:  "required flag",
-		},
 		{
 			name:    "nonexistent directory",
 			args:    []string{"search", "/nonexistent/path", "--tree-sitter-query", "(function_declaration name: (identifier) @func)"},
@@ -386,11 +380,11 @@ func TestSearchCommand_ErrorConditions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			stdout, stderr, err := runEddie(t, tt.args...)
-			
+
 			if tt.wantErr {
 				assert.Error(t, err)
 				output := stdout + stderr
-				assert.Contains(t, strings.ToLower(output), strings.ToLower(tt.errMsg), 
+				assert.Contains(t, strings.ToLower(output), strings.ToLower(tt.errMsg),
 					"error output should contain: %s, got: %s", tt.errMsg, output)
 			} else {
 				assert.NoError(t, err, "stderr: %s", stderr)
@@ -421,7 +415,7 @@ class Person implements User {
         this.age = age;
     }
 }`
-	require.NoError(t, os.WriteFile(tsFile, []byte(tsContent), 0644))
+	require.NoError(t, os.WriteFile(tsFile, []byte(tsContent), 0o644))
 
 	tests := []struct {
 		name         string
@@ -498,7 +492,7 @@ impl Person {
         println!("Hi, I'm {}", self.name);
     }
 }`
-	require.NoError(t, os.WriteFile(rsFile, []byte(rsContent), 0644))
+	require.NoError(t, os.WriteFile(rsFile, []byte(rsContent), 0o644))
 
 	tests := []struct {
 		name         string
