@@ -267,6 +267,126 @@ eddie search . --tree-sitter-query "(type_declaration (type_spec name: (type_ide
 
 **Note:** The search command uses tree-sitter to parse source code and execute structural queries. Different languages have different query syntax - use the appropriate query for each language. Query results show file:line:column format with capture group names and matched line content. Unsupported file types are automatically ignored.
 
+### batch
+Execute multiple eddie operations in sequence from JSON input. Always continues execution on errors and returns JSON output with success/error status for each operation.
+
+**Usage:**
+```bash
+# From stdin
+echo '{"operations":[...]}' | eddie batch
+
+# From file
+eddie batch --file operations.json
+
+# From JSON string
+eddie batch --json '{"operations":[...]}'
+
+# From operation flags (repeatable)
+eddie batch --op view,file.txt --op str_replace,file.txt,old,new --op create,new.txt,"content"
+```
+
+**Flags:**
+- `--file`: Read operations from JSON file
+- `--json`: Operations as JSON string
+- `--op`: Individual operation (repeatable): `type,arg1,arg2,...`
+
+**Input JSON Format:**
+```json
+{
+  "operations": [
+    {
+      "type": "view",
+      "path": "file.txt",
+      "view_range": "1,10"
+    },
+    {
+      "type": "str_replace",
+      "path": "file.txt",
+      "old_str": "old",
+      "new_str": "new",
+      "show_changes": true,
+      "show_result": false
+    },
+    {
+      "type": "create",
+      "path": "newfile.txt",
+      "content": "file content"
+    },
+    {
+      "type": "insert",
+      "path": "file.txt",
+      "insert_line": 5,
+      "new_str": "inserted line"
+    },
+    {
+      "type": "undo_edit",
+      "path": "file.txt",
+      "count": 1
+    },
+    {
+      "type": "ls",
+      "path": "/path/to/directory"
+    },
+    {
+      "type": "search",
+      "path": ".",
+      "tree_sitter_query": "(function_declaration name: (identifier) @func)"
+    }
+  ]
+}
+```
+
+**Output JSON Format:**
+```json
+{
+  "results": [
+    {
+      "operation": {...},
+      "success": true,
+      "output": "operation output",
+      "error": null
+    },
+    {
+      "operation": {...},
+      "success": false,
+      "output": "",
+      "error": "error message"
+    }
+  ]
+}
+```
+
+**Supported Operations:**
+- `view` - View file contents or list directory
+- `str_replace` - Replace string occurrences in file
+- `create` - Create new file with content
+- `insert` - Insert line at specific position
+- `undo_edit` - Undo previous edit operations
+- `ls` - List directory contents
+- `search` - Search using tree-sitter queries
+
+**Examples:**
+```bash
+# Simple view and list operations
+eddie batch --op view,README.md --op ls,.
+
+# File editing sequence
+eddie batch --op create,test.txt,"hello" --op str_replace,test.txt,hello,world --op view,test.txt
+
+# From JSON file
+echo '{"operations":[{"type":"view","path":"README.md"}]}' > ops.json
+eddie batch --file ops.json
+
+# Complex JSON with multiple operations
+eddie batch --json '{"operations":[
+  {"type":"view","path":"main.go","view_range":"1,20"},
+  {"type":"search","path":".","tree_sitter_query":"(function_declaration name: (identifier) @func)"},
+  {"type":"ls","path":"cmd"}
+]}'
+```
+
+**Note:** The batch command always continues execution even if individual operations fail. Each operation result includes a success flag and error message if applicable. This allows for robust batch processing where some operations may fail while others succeed.
+
 # Development Guidelines
 
 ## Go Code Style - Rob Pike Style (MANDATORY)
