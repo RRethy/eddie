@@ -74,6 +74,15 @@ func TestMcpServer_createSearchTool(t *testing.T) {
 	assert.Contains(t, tool.Description, "Search for code patterns")
 }
 
+func TestMcpServer_createBatchTool(t *testing.T) {
+	m := &McpServer{}
+	tool := m.createBatchTool()
+
+	assert.NotNil(t, tool)
+	assert.Equal(t, "batch", tool.Name)
+	assert.Contains(t, tool.Description, "Execute multiple eddie operations")
+}
+
 func TestMcpServer_handleSearch(t *testing.T) {
 	tmpDir := t.TempDir()
 	goFile := filepath.Join(tmpDir, "test.go")
@@ -146,6 +155,180 @@ func goodbye() {
 				require.True(t, ok)
 				assert.Contains(t, textContent.Text, "hello")
 				assert.Contains(t, textContent.Text, "goodbye")
+			}
+		})
+	}
+}
+
+func TestMcpServer_handleBatch(t *testing.T) {
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test.txt")
+	initialContent := "line 1\nline 2\nline 3"
+	
+	err := os.WriteFile(testFile, []byte(initialContent), 0o644)
+	require.NoError(t, err)
+
+	m := &McpServer{}
+
+	tests := []struct {
+		name    string
+		args    map[string]any
+		wantErr bool
+		check   func(t *testing.T, result *mcp.CallToolResult)
+	}{
+		{
+			name: "successful batch with mixed operations",
+			args: map[string]any{
+				"operations": `{
+					"operations": [
+						{
+							"type": "view",
+							"path": "` + testFile + `"
+						},
+						{
+							"type": "str_replace",
+							"path": "` + testFile + `",
+							"old_str": "line 2",
+							"new_str": "modified line 2"
+						},
+						{
+							"type": "view",
+							"path": "` + testFile + `"
+						}
+					]
+				}`,
+			},
+			wantErr: false,
+			check: func(t *testing.T, result *mcp.CallToolResult) {
+				assert.False(t, result.IsError)
+				assert.NotEmpty(t, result.Content)
+				
+				textContent, ok := result.Content[0].(mcp.TextContent)
+				require.True(t, ok)
+				
+				assert.Contains(t, textContent.Text, "success")
+				assert.Contains(t, textContent.Text, "view")
+				assert.Contains(t, textContent.Text, "str_replace")
+			},
+		},
+		{
+			name: "batch with some operations failing",
+			args: map[string]any{
+				"operations": `{
+					"operations": [
+						{
+							"type": "view",
+							"path": "` + testFile + `"
+						},
+						{
+							"type": "view",
+							"path": "/nonexistent/file.txt"
+						},
+						{
+							"type": "ls",
+							"path": "` + tmpDir + `"
+						}
+					]
+				}`,
+			},
+			wantErr: false,
+			check: func(t *testing.T, result *mcp.CallToolResult) {
+				assert.False(t, result.IsError)
+				assert.NotEmpty(t, result.Content)
+				
+				textContent, ok := result.Content[0].(mcp.TextContent)
+				require.True(t, ok)
+				
+				assert.Contains(t, textContent.Text, "success")
+				assert.Contains(t, textContent.Text, "error")
+			},
+		},
+		{
+			name: "missing operations parameter",
+			args: map[string]any{},
+			wantErr: true,
+		},
+		{
+			name: "invalid JSON in operations",
+			args: map[string]any{
+				"operations": `{"invalid": json}`,
+			},
+			wantErr: false,
+			check: func(t *testing.T, result *mcp.CallToolResult) {
+				assert.True(t, result.IsError)
+				assert.NotEmpty(t, result.Content)
+				
+				textContent, ok := result.Content[0].(mcp.TextContent)
+				require.True(t, ok)
+				assert.Contains(t, textContent.Text, "Error parsing batch operations")
+			},
+		},
+		{
+			name: "empty operations array",
+			args: map[string]any{
+				"operations": `{"operations": []}`,
+			},
+			wantErr: false,
+			check: func(t *testing.T, result *mcp.CallToolResult) {
+				assert.False(t, result.IsError)
+				assert.NotEmpty(t, result.Content)
+				
+				textContent, ok := result.Content[0].(mcp.TextContent)
+				require.True(t, ok)
+				assert.Contains(t, textContent.Text, "results")
+			},
+		},
+		{
+			name: "batch with create and insert operations",
+			args: map[string]any{
+				"operations": `{
+					"operations": [
+						{
+							"type": "create",
+							"path": "` + filepath.Join(tmpDir, "new.txt") + `",
+							"content": "new file content"
+						},
+						{
+							"type": "insert",
+							"path": "` + filepath.Join(tmpDir, "new.txt") + `",
+							"insert_line": 2,
+							"new_str": "inserted line"
+						}
+					]
+				}`,
+			},
+			wantErr: false,
+			check: func(t *testing.T, result *mcp.CallToolResult) {
+				assert.False(t, result.IsError)
+				assert.NotEmpty(t, result.Content)
+				
+				textContent, ok := result.Content[0].(mcp.TextContent)
+				require.True(t, ok)
+				assert.Contains(t, textContent.Text, "success")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := mcp.CallToolRequest{
+				Params: mcp.CallToolParams{
+					Arguments: tt.args,
+				},
+			}
+
+			result, err := m.handleBatch(context.Background(), req)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.NotNil(t, result)
+
+			if tt.check != nil {
+				tt.check(t, result)
 			}
 		})
 	}

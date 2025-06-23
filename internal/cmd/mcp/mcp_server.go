@@ -3,6 +3,7 @@ package mcp
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 
+	"github.com/RRethy/eddie/internal/cmd/batch"
 	"github.com/RRethy/eddie/internal/cmd/create"
 	"github.com/RRethy/eddie/internal/cmd/glob"
 	"github.com/RRethy/eddie/internal/cmd/insert"
@@ -38,6 +40,7 @@ func (m *McpServer) Mcp() error {
 	s.AddTool(*m.createGlobTool(), m.handleGlob)
 	s.AddTool(*m.createLsTool(), m.handleLs)
 	s.AddTool(*m.createSearchTool(), m.handleSearch)
+	s.AddTool(*m.createBatchTool(), m.handleBatch)
 
 	return server.ServeStdio(s)
 }
@@ -434,6 +437,14 @@ func (m *McpServer) createSearchTool() *mcp.Tool {
 	return &tool
 }
 
+func (m *McpServer) createBatchTool() *mcp.Tool {
+	tool := mcp.NewTool("batch",
+		mcp.WithDescription("Execute multiple eddie operations in sequence from JSON input"),
+		mcp.WithString("operations", mcp.Required(), mcp.Description("JSON string containing operations array: {\"operations\": [{\"type\": \"view\", \"path\": \"file.txt\"}, ...]}")),
+	)
+	return &tool
+}
+
 func (m *McpServer) handleLs(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args, ok := req.Params.Arguments.(map[string]any)
 	if !ok {
@@ -470,6 +481,56 @@ func (m *McpServer) handleLs(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	return &mcp.CallToolResult{
 		Content: []mcp.Content{
 			mcp.NewTextContent(output),
+		},
+	}, nil
+}
+
+func (m *McpServer) handleBatch(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args, ok := req.Params.Arguments.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("invalid arguments")
+	}
+
+	operationsStr, ok := args["operations"].(string)
+	if !ok {
+		return nil, fmt.Errorf("operations parameter required")
+	}
+
+	batchReq, err := batch.ParseFromJSON(operationsStr)
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				mcp.NewTextContent(fmt.Sprintf("Error parsing batch operations: %v", err)),
+			},
+		}, nil
+	}
+
+	var buf bytes.Buffer
+	processor := batch.NewProcessor(&buf)
+	batchResp, err := processor.ProcessBatch(batchReq)
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				mcp.NewTextContent(fmt.Sprintf("Error processing batch: %v", err)),
+			},
+		}, nil
+	}
+
+	output, err := json.Marshal(batchResp)
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				mcp.NewTextContent(fmt.Sprintf("Error marshaling response: %v", err)),
+			},
+		}, nil
+	}
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.NewTextContent(string(output)),
 		},
 	}, nil
 }
